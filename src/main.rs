@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
 /// Window & playground constants
-const WINDOW_WIDTH:  f32 = 500.0;
-const WINDOW_HEIGHT: f32 = 500.0;
+const WINDOW_WIDTH:  f32 = 540.0;
+const WINDOW_HEIGHT: f32 = 960.0;
 const BALL_RADIUS:   f32 = 15.0;
-const BALL_SPEED:    f32 = 250.0;      // logical-pixels per second
+const BALL_SPEED:    f32 = 250.0;
 
 /// Simple velocity component
 #[derive(Component)]
@@ -12,7 +12,6 @@ struct Velocity(Vec2);
 
 fn main() {
     App::new()
-        // Configure a fixed-size primary window (Bevy 0.10+ API) :contentReference[oaicite:1]{index=1}
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 resolution: (WINDOW_WIDTH, WINDOW_HEIGHT).into(),
@@ -29,19 +28,18 @@ fn main() {
 
 /// Spawn the 2-D camera and the ball entity
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d::default());
 
     commands
-        .spawn(SpriteBundle {
-            sprite: Sprite {
+        .spawn((
+            Sprite {
                 color: Color::linear_rgb(255.0, 255.0, 0.0),
                 custom_size: Some(Vec2::splat(BALL_RADIUS * 2.0)),
                 ..default()
             },
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            ..default()
-        })
-        .insert(Velocity(Vec2::splat(BALL_SPEED)));
+            Transform::from_xyz(0.0, 0.0, 0.0),
+            Velocity(Vec2::splat(BALL_SPEED)),
+        ));
 }
 
 /// Move the ball and reflect its velocity when it hits a wall
