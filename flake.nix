@@ -23,7 +23,7 @@
           alsa-lib
           vulkan-loader
           libxkbcommon
-          libxkbcommon.dev  # This provides libxkbcommon-x11.so
+          libxkbcommon.dev # This provides libxkbcommon-x11.so
           systemd
           wayland
           wayland-protocols
@@ -46,7 +46,7 @@
 
           # Set up library path for runtime
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath libraries;
-          
+
           # Alternative: you can also use shellHook to set the path
           # shellHook = ''
           #   export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath libraries}:$LD_LIBRARY_PATH"
