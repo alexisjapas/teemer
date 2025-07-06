@@ -3,6 +3,9 @@ name = "bounce"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+preview = []
+
 [dependencies]
 bevy = "0.16.1"
 rand = "0.9.1"
