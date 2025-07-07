@@ -3,6 +3,7 @@ use bevy::{
     prelude::*,
     render::view::screenshot::{Capturing, Screenshot, save_to_disk},
 };
+use chrono::{DateTime, Utc};
 use rand::random;
 use std::fs;
 
@@ -10,18 +11,24 @@ use std::fs;
 const PREVIEW_MODE: bool = cfg!(feature = "preview");
 const WINDOW_WIDTH: f32 = 1080.0;
 const WINDOW_HEIGHT: f32 = 1920.0;
-const MAX_FRAMES_TO_CAPTURE: u32 = 61 * 60;
-const FIXED_TIME_STEP: f32 = 1.0 / 60.0;
+const FRAMERATE: f32 = 30.0;
+const MAX_FRAMES_TO_CAPTURE: u32 = 61 * FRAMERATE as u32;
+const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
 /// Simulation parameters
-const NB_ENTITIES: i32 = 444;
-const SQUARE_LEN: f32 = 44.0;
-const MAX_SPEED: f32 = 444.0;
+const NB_ENTITIES: i32 = 4444;
+const SQUARE_LEN: f32 = 4.0;
+const MAX_SPEED: f32 = 44.0;
 
 /// Simple velocity component
 #[derive(Component)]
 struct Velocity(Vec2);
 
+/// Resources
+#[derive(Resource)]
+struct FramesDir(String);
+
+/// Main
 fn main() {
     let mut app = App::new();
 
@@ -51,11 +58,24 @@ fn main() {
     app.run();
 }
 
-/// Spawn the 2-D camera and the ball entity
+/// Systems
+// Spawn the 2-D camera and the ball entity
 fn setup(mut commands: Commands) {
     // Create outputs directories
-    fs::create_dir_all("./screenshots/frames").expect("Failed to create screenshots directory.");
-    fs::create_dir_all("./screenshots/videos").expect("Failed to create screenshots directory.");
+    if !PREVIEW_MODE {
+        // Get and format date
+        let now: DateTime<Utc> = Utc::now();
+        let str_date = now.format("sim_%Y-%m-%d-%H-%M-%SZ").to_string();
+
+        // Generate directories
+        let sim_dir = format!("./outputs/{}", str_date);
+        fs::create_dir_all(&sim_dir).expect("Failed to create simulation directory.");
+        let frames_dir = format!("{}/frames", sim_dir);
+        fs::create_dir_all(&frames_dir).expect("Failed to create frames directory.");
+
+        // Insert as a resource
+        commands.insert_resource(FramesDir(frames_dir));
+    }
 
     commands.spawn(Camera2d::default());
 
@@ -75,7 +95,7 @@ fn setup(mut commands: Commands) {
     }
 }
 
-/// Move the ball and reflect its velocity when it hits a wall
+// Move the ball and reflect its velocity when it hits a wall
 fn move_ball(mut query: Query<(&mut Transform, &mut Velocity)>, time: Res<Time>) {
     let dt = if PREVIEW_MODE {
         time.delta_secs()
@@ -112,6 +132,7 @@ fn take_frame_screenshot(
     mut commands: Commands,
     mut frame_counter: Local<u32>,
     mut exit: EventWriter<AppExit>,
+    frames_dir: Res<FramesDir>,
 ) {
     if *frame_counter >= MAX_FRAMES_TO_CAPTURE {
         println!("Generation done. Exiting.");
@@ -119,7 +140,7 @@ fn take_frame_screenshot(
         return;
     }
 
-    let path = format!("./outputs/frames/frame_{:04}.png", *frame_counter);
+    let path = format!("{}/frame_{:04}.png", frames_dir.0, *frame_counter);
     *frame_counter += 1;
     commands
         .spawn(Screenshot::primary_window())
