@@ -9,16 +9,17 @@ use std::fs;
 
 /// Video parameters
 const PREVIEW_MODE: bool = cfg!(feature = "preview");
-const WINDOW_WIDTH: f32 = 1080.0;
-const WINDOW_HEIGHT: f32 = 1920.0;
+const WINDOW_WIDTH: f32 = 720.0;
+const WINDOW_HEIGHT: f32 = 1280.0;
 const FRAMERATE: f32 = 30.0;
-const MAX_FRAMES_TO_CAPTURE: u32 = 61 * FRAMERATE as u32;
+const MAX_DURATION: f32 = 61.0;
+const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
 const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
 /// Simulation parameters
-const NB_ENTITIES: i32 = 4444;
-const SQUARE_LEN: f32 = 4.0;
-const MAX_SPEED: f32 = 44.0;
+const NB_ENTITIES: i32 = 333;
+const SQUARE_LEN: f32 = 44.0;
+const MAX_SPEED: f32 = 99.0;
 
 /// Simple velocity component
 #[derive(Component)]
@@ -82,7 +83,7 @@ fn setup(mut commands: Commands) {
     for _i in 0..NB_ENTITIES {
         commands.spawn((
             Sprite {
-                color: Color::linear_rgb(random(), random(), random()),
+                color: Color::linear_rgb(random(), random(), 0.9),
                 custom_size: Some(Vec2::splat(SQUARE_LEN)),
                 ..default()
             },
