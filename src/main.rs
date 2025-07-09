@@ -20,7 +20,7 @@ const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 /// Simulation parameters
 const NB_ENTITIES: i32 = 44;
 const SQUARE_LEN: f32 = 44.0;
-const MAX_SPEED: f32 = 144.0;
+const MAX_SPEED: f32 = 44.0;
 
 /// Resources
 #[derive(Resource)]
@@ -46,17 +46,22 @@ fn main() {
     .add_systems(Startup, setup)
     // Avian's physics
     .insert_resource(Gravity(Vec2::ZERO))
-    .insert_resource(Time::<Fixed>::from_seconds(FIXED_TIME_STEP as f64))
     // Miscellaneous
     .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)));
 
     // Specific configuration
     if PREVIEW_MODE {
         println!("Preview mode activated. Real-time rendering & no frames capture.");
-        app.add_systems(Update, preview_frame_counter);
+        app.add_systems(Update, preview_frame_counter)
+            .insert_resource(Time::<Fixed>::from_seconds(FIXED_TIME_STEP as f64));
     } else {
         println!("Generation mode activated. Longer rendering time & frames capture.");
-        app.add_systems(Update, take_frame_screenshot.run_if(no_capture_in_progress));
+        app.add_systems(
+            Update,
+            (manual_physics_step, take_frame_screenshot)
+                .run_if(no_capture_in_progress)
+                .chain(),
+        );
     }
 
     // Run
@@ -189,4 +194,9 @@ fn preview_frame_counter(mut frame_counter: Local<u32>, mut exit: EventWriter<Ap
 
 fn no_capture_in_progress(capturing: Query<(), With<Capturing>>) -> bool {
     capturing.is_empty()
+}
+
+fn manual_physics_step(mut physics_time: ResMut<Time<Physics>>) {
+    println!("Physics step advancing.");
+    physics_time.advance_by(std::time::Duration::from_secs_f32(FIXED_TIME_STEP));
 }
