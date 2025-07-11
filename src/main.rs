@@ -13,14 +13,14 @@ const PREVIEW_MODE: bool = cfg!(feature = "preview");
 const WINDOW_WIDTH: f32 = 720.0;
 const WINDOW_HEIGHT: f32 = 1280.0;
 const FRAMERATE: f32 = 30.0;
-const MAX_DURATION: f32 = 61.0;
+const MAX_DURATION: f32 = 610.0;
 const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
 const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
 /// Simulation parameters
-const NB_ENTITIES_PER_TEAM: i32 = 16;
+const NB_ENTITIES_PER_TEAM: i32 = 32;
 const SQUARE_LEN: f32 = 16.0;
-const MAX_SPEED: f32 = 256.0;
+const MAX_SPEED: f32 = 128.0;
 
 /// Resources
 #[derive(Resource)]
@@ -44,7 +44,10 @@ fn main() {
         PhysicsPlugins::default(),
     ))
     .add_systems(Startup, setup)
-    .add_systems(Update, collision_kill_system)
+    .add_systems(
+        Update,
+        (assign_targets, hunter_movement, collision_kill_system),
+    )
     // Avian's physics
     .insert_resource(Gravity(Vec2::ZERO))
     // Miscellaneous
@@ -77,9 +80,11 @@ enum Species {
     Snake,
 }
 
-#[derive(Component, Debug)]
+#[derive(Component)]
 struct Hunter {
     hunts: Species,
+    speed: f32,
+    detection_range: f32,
     current_target: Option<Entity>,
 }
 
@@ -208,6 +213,8 @@ fn spawn_entities(commands: &mut Commands) {
             Species::Chicken,
             Hunter {
                 hunts: Species::Snake,
+                speed: MAX_SPEED * random::<f32>(),
+                detection_range: 2000.0,
                 current_target: None,
             },
             Name::new("Chicken"),
@@ -233,13 +240,15 @@ fn spawn_entities(commands: &mut Commands) {
             Species::Fox,
             Hunter {
                 hunts: Species::Chicken,
+                speed: MAX_SPEED * random::<f32>(),
+                detection_range: 2000.0,
                 current_target: None,
             },
             Name::new("Fox"),
         ));
     }
 
-    // snake
+    // Snake
     for _i in 0..NB_ENTITIES_PER_TEAM {
         let rand_color = random::<f32>().min(0.4).max(0.1);
         commands.spawn((
@@ -258,6 +267,8 @@ fn spawn_entities(commands: &mut Commands) {
             Species::Snake,
             Hunter {
                 hunts: Species::Fox,
+                speed: MAX_SPEED * random::<f32>(),
+                detection_range: 2000.0,
                 current_target: None,
             },
             Name::new("Snake"),
@@ -301,6 +312,84 @@ fn manual_physics_step(mut physics_time: ResMut<Time<Physics>>) {
     println!("Physics step advancing.");
     physics_time.advance_by(std::time::Duration::from_secs_f32(FIXED_TIME_STEP));
 }
+
+// Hunting
+fn assign_targets(
+    mut hunters: Query<(Entity, &mut Hunter, &Transform, &Species), With<Hunter>>,
+    potential_prey: Query<(Entity, &Transform, &Species), With<Species>>,
+) {
+    for (_, mut hunter, hunter_transform, _) in hunters.iter_mut() {
+        // Clear target if out of range or dead
+        if let Some(current_target) = hunter.current_target {
+            if let Ok((_, target_transform, _)) = potential_prey.get(current_target) {
+                let distance = hunter_transform
+                    .translation
+                    .distance(target_transform.translation);
+                if distance > hunter.detection_range {
+                    hunter.current_target = None;
+                }
+            } else {
+                hunter.current_target = None;
+            }
+        }
+
+        // Find new target
+        if hunter.current_target.is_none() {
+            let mut closest_distance = hunter.detection_range;
+            let mut closest_prey = None;
+
+            for (prey_entity, prey_transform, prey_species) in potential_prey.iter() {
+                if hunter.hunts == *prey_species {
+                    let distance = hunter_transform
+                        .translation
+                        .distance(prey_transform.translation);
+                    if distance < closest_distance {
+                        closest_distance = distance;
+                        closest_prey = Some(prey_entity);
+                    }
+                }
+            }
+
+            hunter.current_target = closest_prey;
+        }
+    }
+}
+
+fn hunter_movement(
+    mut hunters: Query<(&mut Hunter, &Transform, &mut LinearVelocity)>,
+    prey: Query<&Transform>,
+) {
+    for (mut hunter, hunter_transform, mut velocity) in hunters.iter_mut() {
+        if let Some(target_entity) = hunter.current_target {
+            if let Ok(target_transform) = prey.get(target_entity) {
+                let current_pos = hunter_transform.translation.truncate();
+                let target_pos = target_transform.translation.truncate();
+                let current_velocity = Vec2::new(velocity.x, velocity.y);
+
+                // Compute desired velocity toward prey
+                let direction = (target_pos - current_pos).normalize();
+                let desired_velocity = direction * hunter.speed;
+
+                // Apply steering force for smoother movements
+                let steering_force = desired_velocity - current_velocity;
+                let max_force = hunter.speed * 2.0;
+                let steering_force = steering_force.clamp_length_max(max_force);
+
+                let new_velocity = current_velocity + steering_force * FIXED_TIME_STEP;
+                let new_velocity = new_velocity.clamp_length_max(hunter.speed);
+
+                velocity.x = new_velocity.x;
+                velocity.y = new_velocity.y;
+            } else {
+                hunter.current_target = None;
+            }
+        } else {
+            //todo!("If no target, slow down and move randomly.")
+        }
+    }
+}
+
+fn prey_movement() {}
 
 fn collision_kill_system(
     mut commands: Commands,
