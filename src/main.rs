@@ -13,7 +13,7 @@ const PREVIEW_MODE: bool = cfg!(feature = "preview");
 const WINDOW_WIDTH: f32 = 720.0;
 const WINDOW_HEIGHT: f32 = 1280.0;
 const FRAMERATE: f32 = 30.0;
-const MAX_DURATION: f32 = 610.0;
+const MAX_DURATION: f32 = 61.0;
 const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
 const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
