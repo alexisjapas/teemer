@@ -18,9 +18,9 @@ const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
 const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
 /// Simulation parameters
-const NB_ENTITIES_PER_TEAM: i32 = 64;
-const SQUARE_LEN: f32 = 32.0;
-const MAX_SPEED: f32 = 64.0;
+const NB_ENTITIES_PER_TEAM: i32 = 16;
+const SQUARE_LEN: f32 = 16.0;
+const MAX_SPEED: f32 = 256.0;
 
 /// Resources
 #[derive(Resource)]
@@ -80,10 +80,13 @@ enum Species {
 #[derive(Component, Debug)]
 struct Hunter {
     hunts: Species,
+    current_target: Option<Entity>,
 }
 
 #[derive(Component, Clone)]
-struct Prey;
+struct Prey {
+    current_threat: Option<Entity>,
+}
 
 /// Systems
 // Spawn the 2-D camera and the ball entity
@@ -115,50 +118,61 @@ fn setup(mut commands: Commands) {
 }
 
 fn create_walls(commands: &mut Commands) {
-    let wall_thickness = 10.0;
+    let wall_thickness = 8.0;
+    let wall_restitution = 0.7;
     let half_w = WINDOW_WIDTH / 2.0;
     let half_h = WINDOW_HEIGHT / 2.0;
 
     // Top wall
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.1, 0.2, 0.3),
+            color: Color::linear_rgb(0.4, 0.1, 0.2),
             custom_size: Some(Vec2::new(WINDOW_WIDTH, wall_thickness)),
             ..default()
         },
         RigidBody::Static,
         Collider::rectangle(WINDOW_WIDTH, wall_thickness),
         Transform::from_xyz(0.0, half_h - wall_thickness / 2.0, 0.0),
-        Restitution::new(1.0),
+        Restitution::new(wall_restitution),
     ));
 
     // Bottom wall
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.1, 0.2, 0.3),
+            color: Color::linear_rgb(0.4, 0.1, 0.2),
             custom_size: Some(Vec2::new(WINDOW_WIDTH, wall_thickness)),
             ..default()
         },
         RigidBody::Static,
         Collider::rectangle(WINDOW_WIDTH, wall_thickness),
         Transform::from_xyz(0.0, -half_h + wall_thickness / 2.0, 0.0),
-        Restitution::new(1.0),
+        Restitution::new(wall_restitution),
     ));
 
     // Left wall
     commands.spawn((
+        Sprite {
+            color: Color::linear_rgb(0.4, 0.1, 0.2),
+            custom_size: Some(Vec2::new(wall_thickness, WINDOW_HEIGHT)),
+            ..default()
+        },
         RigidBody::Static,
         Collider::rectangle(wall_thickness, WINDOW_HEIGHT),
-        Transform::from_xyz(-half_w - wall_thickness / 2.0, 0.0, 0.0),
-        Restitution::new(1.0),
+        Transform::from_xyz(-half_w + wall_thickness / 2.0, 0.0, 0.0),
+        Restitution::new(wall_restitution),
     ));
 
     // Right wall
     commands.spawn((
+        Sprite {
+            color: Color::linear_rgb(0.4, 0.1, 0.2),
+            custom_size: Some(Vec2::new(wall_thickness, WINDOW_HEIGHT)),
+            ..default()
+        },
         RigidBody::Static,
         Collider::rectangle(wall_thickness, WINDOW_HEIGHT),
-        Transform::from_xyz(half_w + wall_thickness / 2.0, 0.0, 0.0),
-        Restitution::new(1.0),
+        Transform::from_xyz(half_w - wall_thickness / 2.0, 0.0, 0.0),
+        Restitution::new(wall_restitution),
     ));
 }
 
@@ -166,16 +180,18 @@ fn spawn_entities(commands: &mut Commands) {
     let entity_bundle = (
         RigidBody::Dynamic,
         Collider::rectangle(SQUARE_LEN, SQUARE_LEN),
-        Restitution::new(1.0), // Bouncing restitution
+        Restitution::new(0.0), // Bouncing restitution
         Friction::new(0.0),
         LockedAxes::ROTATION_LOCKED,
-        Prey,
+        Prey {
+            current_threat: None,
+        },
         CollisionEventsEnabled,
     );
 
     // Chicken
     for _i in 0..NB_ENTITIES_PER_TEAM {
-        let rand_color = random::<f32>().min(0.4).max(0.1);
+        let rand_color = random::<f32>().min(0.4).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
             Sprite {
@@ -192,6 +208,7 @@ fn spawn_entities(commands: &mut Commands) {
             Species::Chicken,
             Hunter {
                 hunts: Species::Snake,
+                current_target: None,
             },
             Name::new("Chicken"),
         ));
@@ -216,6 +233,7 @@ fn spawn_entities(commands: &mut Commands) {
             Species::Fox,
             Hunter {
                 hunts: Species::Chicken,
+                current_target: None,
             },
             Name::new("Fox"),
         ));
@@ -240,6 +258,7 @@ fn spawn_entities(commands: &mut Commands) {
             Species::Snake,
             Hunter {
                 hunts: Species::Fox,
+                current_target: None,
             },
             Name::new("Snake"),
         ));
