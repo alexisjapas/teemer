@@ -1,3 +1,6 @@
+mod components;
+mod resources;
+
 use avian2d::prelude::*;
 use bevy::{
     app::AppExit,
@@ -8,23 +11,22 @@ use chrono::{DateTime, Utc};
 use rand::random;
 use std::fs;
 
+use components::*;
+use resources::*;
+
 /// Video parameters
 const PREVIEW_MODE: bool = cfg!(feature = "preview");
 const WINDOW_WIDTH: f32 = 720.0;
 const WINDOW_HEIGHT: f32 = 1280.0;
 const FRAMERATE: f32 = 30.0;
-const MAX_DURATION: f32 = 61.0;
+const MAX_DURATION: f32 = 610.0;
 const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
 const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
 /// Simulation parameters
-const NB_ENTITIES_PER_TEAM: i32 = 16;
-const SQUARE_LEN: f32 = 16.0;
-const MAX_SPEED: f32 = 64.0;
-
-/// Resources
-#[derive(Resource)]
-struct FramesDir(String);
+const NB_ENTITIES_PER_TEAM: i32 = 32;
+const SQUARE_LEN: f32 = 4.0;
+const MAX_SPEED: f32 = 32.0 * 3.0;
 
 /// Main
 fn main() {
@@ -76,30 +78,6 @@ fn main() {
     // Run
     app.run();
 }
-
-/// Components
-#[derive(Component, Debug, PartialEq, Eq, Clone, Copy)]
-enum Species {
-    Chicken,
-    Fox,
-    Snake,
-}
-
-#[derive(Component)]
-struct Hunter {
-    hunts: Species,
-    detection_range: f32,
-    current_target: Option<Entity>,
-}
-
-#[derive(Component, Clone)]
-struct Prey {
-    detection_range: f32,
-    current_threat: Option<Entity>,
-}
-
-#[derive(Component, Clone)]
-struct Speed(f32);
 
 /// Systems
 // Spawn the 2-D camera and the ball entity
@@ -196,10 +174,7 @@ fn spawn_entities(commands: &mut Commands) {
         Restitution::new(0.2), // Bouncing restitution
         Friction::new(0.1),
         LockedAxes::ROTATION_LOCKED,
-        Prey {
-            detection_range: 222.0,
-            current_threat: None,
-        },
+        Prey::new(222.2),
         CollisionEventsEnabled,
     );
 
@@ -220,12 +195,8 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
             Species::Chicken,
-            Hunter {
-                hunts: Species::Snake,
-                detection_range: 666.0,
-                current_target: None,
-            },
-            Speed(MAX_SPEED * random::<f32>()),
+            Hunter::new(Species::Snake, 666.6),
+            Speed::new(MAX_SPEED * random::<f32>()),
             Name::new("Chicken"),
         ));
     }
@@ -247,12 +218,8 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
             Species::Fox,
-            Hunter {
-                hunts: Species::Chicken,
-                detection_range: 666.0,
-                current_target: None,
-            },
-            Speed(MAX_SPEED * random::<f32>()),
+            Hunter::new(Species::Chicken, 666.6),
+            Speed::new(MAX_SPEED * random::<f32>()),
             Name::new("Fox"),
         ));
     }
@@ -274,12 +241,8 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
             Species::Snake,
-            Hunter {
-                hunts: Species::Fox,
-                detection_range: 666.0,
-                current_target: None,
-            },
-            Speed(MAX_SPEED * random::<f32>()),
+            Hunter::new(Species::Fox, 666.6),
+            Speed::new(MAX_SPEED * random::<f32>()),
             Name::new("Snake"),
         ));
     }
@@ -374,7 +337,7 @@ fn predator_movement(
                 let current_pos = predator_transform.translation.truncate();
                 let target_pos = target_transform.translation.truncate();
                 let current_velocity = Vec2::new(velocity.x, velocity.y);
-                let hunt_speed = predator_speed.0;
+                let hunt_speed = predator_speed.value();
 
                 // Compute desired velocity toward prey
                 let direction = (target_pos - current_pos).normalize();
@@ -430,7 +393,7 @@ fn prey_movement(
             flee_direction = flee_direction.normalize();
 
             // Set flee speed
-            let flee_speed = prey_speed.0;
+            let flee_speed = prey_speed.value();
             let desired_velocity = flee_direction * flee_speed;
 
             // Steering force for smoother movement
