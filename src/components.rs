@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 #[derive(Component, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Species {
-    Chicken,
     Fox,
+    Chicken,
     Snake,
 }
 
@@ -31,7 +31,8 @@ pub struct Prey {
 impl Prey {
     pub fn new(detection_range: f32) -> Self {
         Self {
-            detection_range, current_threat: None
+            detection_range,
+            current_threat: None,
         }
     }
 }
@@ -42,7 +43,7 @@ impl Speed {
     pub fn new(value: f32) -> Self {
         Self(value)
     }
-    
+
     pub fn value(&self) -> f32 {
         self.0
     }

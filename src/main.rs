@@ -19,14 +19,17 @@ const PREVIEW_MODE: bool = cfg!(feature = "preview");
 const WINDOW_WIDTH: f32 = 720.0;
 const WINDOW_HEIGHT: f32 = 1280.0;
 const FRAMERATE: f32 = 30.0;
-const MAX_DURATION: f32 = 610.0;
+const MAX_DURATION: f32 = 61.0 * if PREVIEW_MODE {4.0} else {1.0};
 const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
 const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
+/// HUD
+const WALLS_THICKNESS: f32 = 8.0;
+
 /// Simulation parameters
 const NB_ENTITIES_PER_TEAM: i32 = 32;
-const SQUARE_LEN: f32 = 4.0;
-const MAX_SPEED: f32 = 32.0 * 3.0;
+const SQUARE_LEN: f32 = 16.0;
+const MAX_SPEED: f32 = 32.0 * if PREVIEW_MODE {4.0} else {1.0};
 
 /// Main
 fn main() {
@@ -109,7 +112,6 @@ fn setup(mut commands: Commands) {
 }
 
 fn create_walls(commands: &mut Commands) {
-    let wall_thickness = 8.0;
     let wall_restitution = 0.7;
     let half_w = WINDOW_WIDTH / 2.0;
     let half_h = WINDOW_HEIGHT / 2.0;
@@ -118,12 +120,25 @@ fn create_walls(commands: &mut Commands) {
     commands.spawn((
         Sprite {
             color: Color::linear_rgb(0.4, 0.1, 0.2),
-            custom_size: Some(Vec2::new(WINDOW_WIDTH, wall_thickness)),
+            custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
         RigidBody::Static,
-        Collider::rectangle(WINDOW_WIDTH, wall_thickness),
-        Transform::from_xyz(0.0, half_h - wall_thickness / 2.0, 0.0),
+        Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
+        Transform::from_xyz(0.0, half_h - WALLS_THICKNESS / 2.0, 0.0),
+        Restitution::new(wall_restitution),
+    ));
+
+    // Middle wall
+    commands.spawn((
+        Sprite {
+            color: Color::linear_rgb(0.4, 0.1, 0.2),
+            custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
+            ..default()
+        },
+        RigidBody::Static,
+        Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
+        Transform::from_xyz(0.0, -half_h + WALLS_THICKNESS / 2.0 + (1280.0 - 720.0), 0.0),
         Restitution::new(wall_restitution),
     ));
 
@@ -131,12 +146,12 @@ fn create_walls(commands: &mut Commands) {
     commands.spawn((
         Sprite {
             color: Color::linear_rgb(0.4, 0.1, 0.2),
-            custom_size: Some(Vec2::new(WINDOW_WIDTH, wall_thickness)),
+            custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
         RigidBody::Static,
-        Collider::rectangle(WINDOW_WIDTH, wall_thickness),
-        Transform::from_xyz(0.0, -half_h + wall_thickness / 2.0, 0.0),
+        Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
+        Transform::from_xyz(0.0, -half_h + WALLS_THICKNESS / 2.0, 0.0),
         Restitution::new(wall_restitution),
     ));
 
@@ -144,12 +159,12 @@ fn create_walls(commands: &mut Commands) {
     commands.spawn((
         Sprite {
             color: Color::linear_rgb(0.4, 0.1, 0.2),
-            custom_size: Some(Vec2::new(wall_thickness, WINDOW_HEIGHT)),
+            custom_size: Some(Vec2::new(WALLS_THICKNESS, WINDOW_HEIGHT)),
             ..default()
         },
         RigidBody::Static,
-        Collider::rectangle(wall_thickness, WINDOW_HEIGHT),
-        Transform::from_xyz(-half_w + wall_thickness / 2.0, 0.0, 0.0),
+        Collider::rectangle(WALLS_THICKNESS, WINDOW_HEIGHT),
+        Transform::from_xyz(-half_w + WALLS_THICKNESS / 2.0, 0.0, 0.0),
         Restitution::new(wall_restitution),
     ));
 
@@ -157,17 +172,21 @@ fn create_walls(commands: &mut Commands) {
     commands.spawn((
         Sprite {
             color: Color::linear_rgb(0.4, 0.1, 0.2),
-            custom_size: Some(Vec2::new(wall_thickness, WINDOW_HEIGHT)),
+            custom_size: Some(Vec2::new(WALLS_THICKNESS, WINDOW_HEIGHT)),
             ..default()
         },
         RigidBody::Static,
-        Collider::rectangle(wall_thickness, WINDOW_HEIGHT),
-        Transform::from_xyz(half_w - wall_thickness / 2.0, 0.0, 0.0),
+        Collider::rectangle(WALLS_THICKNESS, WINDOW_HEIGHT),
+        Transform::from_xyz(half_w - WALLS_THICKNESS / 2.0, 0.0, 0.0),
         Restitution::new(wall_restitution),
     ));
 }
 
 fn spawn_entities(commands: &mut Commands) {
+    let walls_paddings = WALLS_THICKNESS * 2.0 + 8.0;
+    let half_w = WINDOW_WIDTH / 2.0;
+    let half_h = WINDOW_HEIGHT / 2.0;
+
     let entity_bundle = (
         RigidBody::Dynamic,
         Collider::rectangle(SQUARE_LEN, SQUARE_LEN),
@@ -178,32 +197,9 @@ fn spawn_entities(commands: &mut Commands) {
         CollisionEventsEnabled,
     );
 
-    // Chicken
-    for _i in 0..NB_ENTITIES_PER_TEAM {
-        let rand_color = random::<f32>().min(0.4).max(0.0);
-        commands.spawn((
-            entity_bundle.clone(),
-            Sprite {
-                color: Color::linear_rgb(rand_color, rand_color, 1.0),
-                custom_size: Some(Vec2::splat(SQUARE_LEN)),
-                ..default()
-            },
-            Transform::from_xyz(300.0, 0.0, 0.0),
-            // Avian's physics
-            LinearVelocity(Vec2::new(
-                MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
-            )),
-            Species::Chicken,
-            Hunter::new(Species::Snake, 666.6),
-            Speed::new(MAX_SPEED * random::<f32>()),
-            Name::new("Chicken"),
-        ));
-    }
-
     // Fox
     for _i in 0..NB_ENTITIES_PER_TEAM {
-        let rand_color = random::<f32>().min(0.4).max(0.1);
+        let rand_color = random::<f32>().min(0.2).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
             Sprite {
@@ -211,22 +207,45 @@ fn spawn_entities(commands: &mut Commands) {
                 custom_size: Some(Vec2::splat(SQUARE_LEN)),
                 ..default()
             },
-            Transform::from_xyz(-150.0, 260.0, 0.0),
+            Transform::from_xyz(-half_w + walls_paddings, half_h - walls_paddings, 0.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
             Species::Fox,
-            Hunter::new(Species::Chicken, 666.6),
+            Hunter::new(Species::Chicken, 444.4),
             Speed::new(MAX_SPEED * random::<f32>()),
             Name::new("Fox"),
+        ));
+    }
+    
+    // Chicken
+    for _i in 0..NB_ENTITIES_PER_TEAM {
+        let rand_color = random::<f32>().min(0.2).max(0.0);
+        commands.spawn((
+            entity_bundle.clone(),
+            Sprite {
+                color: Color::linear_rgb(rand_color, rand_color, 1.0),
+                custom_size: Some(Vec2::splat(SQUARE_LEN)),
+                ..default()
+            },
+            Transform::from_xyz(half_w - walls_paddings, half_h - walls_paddings, 0.0),
+            // Avian's physics
+            LinearVelocity(Vec2::new(
+                MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
+            )),
+            Species::Chicken,
+            Hunter::new(Species::Snake, 444.4),
+            Speed::new(MAX_SPEED * random::<f32>()),
+            Name::new("Chicken"),
         ));
     }
 
     // Snake
     for _i in 0..NB_ENTITIES_PER_TEAM {
-        let rand_color = random::<f32>().min(0.4).max(0.1);
+        let rand_color = random::<f32>().min(0.2).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
             Sprite {
@@ -234,14 +253,18 @@ fn spawn_entities(commands: &mut Commands) {
                 custom_size: Some(Vec2::splat(SQUARE_LEN)),
                 ..default()
             },
-            Transform::from_xyz(-150.0, -260.0, 0.0),
+            Transform::from_xyz(
+                0.0,
+                -half_h + walls_paddings + (1280.0 - 720.0),
+                0.0,
+            ),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
             Species::Snake,
-            Hunter::new(Species::Fox, 666.6),
+            Hunter::new(Species::Fox, 444.4),
             Speed::new(MAX_SPEED * random::<f32>()),
             Name::new("Snake"),
         ));
