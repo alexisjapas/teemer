@@ -26,11 +26,12 @@ const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 /// HUD
 const WALLS_THICKNESS: f32 = 8.0;
 const ENTITIES_SIZE: f32 = 44.0;
-const FONT_SIZE: f32 = 24.0;
+const TITLE_FONT_SIZE: f32 = 24.0;
+const TEXT_FONT_SIZE: f32 = 20.0;
 
 /// Simulation parameters
 const NB_PREDATORS: i32 = 4;
-const NB_PREYS: i32 = 32;
+const NB_PREY: i32 = 32;
 const NB_PLANTS: i32 = 64;
 const SQUARE_LEN: f32 = 16.0;
 const MAX_SPEED: f32 = 32.0 * if PREVIEW_MODE { 4.0 } else { 1.0 };
@@ -238,8 +239,8 @@ fn spawn_entities(commands: &mut Commands) {
         ));
     }
 
-    // Preys
-    for _i in 0..NB_PREYS {
+    // Prey
+    for _i in 0..NB_PREY {
         let rand_color = random::<f32>().min(0.1).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
@@ -291,7 +292,7 @@ fn spawn_hud(commands: &mut Commands) {
         Text::new(format!("Predators: {}", NB_PREDATORS)),
         TextLayout::new_with_justify(JustifyText::Left),
         TextFont {
-            font_size: FONT_SIZE,
+            font_size: TITLE_FONT_SIZE,
             ..default()
         },
         TextColor(Color::WHITE),
@@ -304,20 +305,39 @@ fn spawn_hud(commands: &mut Commands) {
         Species::Predator,
     ));
     commands.spawn((
+        Text::new("Predators have no fear. They hunt prey\nuntil there's nothing left to eat."),
+        TextLayout::new_with_justify(JustifyText::Left),
+        TextFont {
+            font_size: TEXT_FONT_SIZE,
+            ..default()
+        },
+        TextColor(Color::WHITE),
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(720.0 + 60.0 + TITLE_FONT_SIZE * 2.0),
+            left: Val::Px(108.0 + 10.0),
+            ..default()
+        },
+    ));
+    commands.spawn((
         Sprite {
             color: Color::linear_rgb(1.0, 0.0, 0.0),
             custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
             ..default()
         },
         RigidBody::Kinematic,
-        Transform::from_xyz(-WINDOW_WIDTH / 2.0 + 108.0 / 2.0, (WINDOW_HEIGHT / 2.0) - 720.0 - 60.0 - WALLS_THICKNESS - FONT_SIZE / 2.0, 0.0),
+        Transform::from_xyz(
+            -WINDOW_WIDTH / 2.0 + 108.0 / 2.0,
+            (WINDOW_HEIGHT / 2.0) - 720.0 - 60.0 - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
+            0.0,
+        ),
         // Avian's physics
-        AngularVelocity(0.4)
+        AngularVelocity(0.4),
     ));
 
-    // Preys
+    // Prey
     commands.spawn((
-        Text::new(format!("Preys: {}", NB_PREYS)),
+        Text::new(format!("Prey: {}", NB_PREY)),
         TextLayout::new_with_justify(JustifyText::Left),
         TextFont {
             font_size: 24.0,
@@ -333,15 +353,36 @@ fn spawn_hud(commands: &mut Commands) {
         Species::Prey,
     ));
     commands.spawn((
+        Text::new(
+            "Prey are constantly fleeing from predators.\nWhen they get a break, they eat plants.",
+        ),
+        TextLayout::new_with_justify(JustifyText::Left),
+        TextFont {
+            font_size: TEXT_FONT_SIZE,
+            ..default()
+        },
+        TextColor(Color::WHITE),
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(944.0 + TITLE_FONT_SIZE * 2.0),
+            left: Val::Px(108.0 + 10.0),
+            ..default()
+        },
+    ));
+    commands.spawn((
         Sprite {
             color: Color::linear_rgb(0.0, 0.0, 1.0),
             custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
             ..default()
         },
         RigidBody::Kinematic,
-        Transform::from_xyz(-WINDOW_WIDTH / 2.0 + 108.0 / 2.0, (WINDOW_HEIGHT / 2.0) - 944.0 - WALLS_THICKNESS - FONT_SIZE / 2.0, 0.0),
+        Transform::from_xyz(
+            -WINDOW_WIDTH / 2.0 + 108.0 / 2.0,
+            (WINDOW_HEIGHT / 2.0) - 944.0 - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
+            0.0,
+        ),
         // Avian's physics
-        AngularVelocity(0.2)
+        AngularVelocity(0.2),
     ));
 
     // Plants
@@ -362,15 +403,34 @@ fn spawn_hud(commands: &mut Commands) {
         Species::Plant,
     ));
     commands.spawn((
+        Text::new("Plants have no abilities. They are eaten\nby prey (so aren't they also...?)."),
+        TextLayout::new_with_justify(JustifyText::Left),
+        TextFont {
+            font_size: TEXT_FONT_SIZE,
+            ..default()
+        },
+        TextColor(Color::WHITE),
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(1108.0 + TITLE_FONT_SIZE * 2.0),
+            left: Val::Px(108.0 + 10.0),
+            ..default()
+        },
+    ));
+    commands.spawn((
         Sprite {
             color: Color::linear_rgb(0.0, 1.0, 0.0),
             custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
             ..default()
         },
         RigidBody::Kinematic,
-        Transform::from_xyz(-WINDOW_WIDTH / 2.0 + 108.0 / 2.0, (WINDOW_HEIGHT / 2.0) - 1108.0 - WALLS_THICKNESS - FONT_SIZE / 2.0, 0.0),
+        Transform::from_xyz(
+            -WINDOW_WIDTH / 2.0 + 108.0 / 2.0,
+            (WINDOW_HEIGHT / 2.0) - 1108.0 - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
+            0.0,
+        ),
         // Avian's physics
-        AngularVelocity(0.1)
+        AngularVelocity(0.1),
     ));
 }
 
@@ -382,7 +442,7 @@ fn update_text(
         .iter()
         .filter(|species| **species == Species::Predator)
         .count();
-    let preys_count = species_query
+    let prey_count = species_query
         .iter()
         .filter(|species| **species == Species::Prey)
         .count();
@@ -394,7 +454,7 @@ fn update_text(
     for (mut text, species) in text_query.iter_mut() {
         match species {
             Species::Predator => text.0 = format!("Predators: {}", predators_count),
-            Species::Prey => text.0 = format!("Preys: {}", preys_count),
+            Species::Prey => text.0 = format!("Prey: {}", prey_count),
             Species::Plant => text.0 = format!("Plants: {}", plants_count),
         }
     }
