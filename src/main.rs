@@ -31,9 +31,11 @@ const TEXT_FONT_SIZE: f32 = 20.0;
 
 /// Simulation parameters
 const NB_PREDATORS: i32 = 4;
-const NB_PREY: i32 = 32;
+const NB_PREY: i32 = 64;
 const NB_PLANTS: i32 = 64;
-const SQUARE_LEN: f32 = 16.0;
+const PREDATOR_SIZE: f32 = 16.0;
+const PREY_SIZE: f32 = 8.0;
+const PLANT_SIZE: f32 = 4.0;
 const MAX_SPEED: f32 = 32.0 * if PREVIEW_MODE { 4.0 } else { 1.0 };
 
 /// Main
@@ -208,11 +210,9 @@ fn spawn_entities(commands: &mut Commands) {
 
     let entity_bundle = (
         RigidBody::Dynamic,
-        Collider::rectangle(SQUARE_LEN, SQUARE_LEN),
         Restitution::new(0.2), // Bouncing restitution
-        Friction::new(0.1),
+        Friction::new(0.2),
         LockedAxes::ROTATION_LOCKED,
-        Prey::new(222.2),
         CollisionEventsEnabled,
     );
 
@@ -221,9 +221,10 @@ fn spawn_entities(commands: &mut Commands) {
         let rand_color = random::<f32>().min(0.1).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
+            Collider::rectangle(PREDATOR_SIZE, PREDATOR_SIZE),
             Sprite {
                 color: Color::linear_rgb(1.0, rand_color, rand_color),
-                custom_size: Some(Vec2::splat(SQUARE_LEN)),
+                custom_size: Some(Vec2::splat(PREDATOR_SIZE)),
                 ..default()
             },
             Transform::from_xyz(-half_w + walls_paddings, half_h - walls_paddings, 0.0),
@@ -244,9 +245,10 @@ fn spawn_entities(commands: &mut Commands) {
         let rand_color = random::<f32>().min(0.1).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
+            Collider::rectangle(PREY_SIZE, PREY_SIZE),
             Sprite {
                 color: Color::linear_rgb(rand_color, rand_color, 1.0),
-                custom_size: Some(Vec2::splat(SQUARE_LEN)),
+                custom_size: Some(Vec2::splat(PREY_SIZE)),
                 ..default()
             },
             Transform::from_xyz(half_w - walls_paddings, half_h - walls_paddings, 0.0),
@@ -256,6 +258,7 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
             Species::Prey,
+            Prey::new(222.2),
             Hunter::new(Species::Plant, 444.4),
             Speed::new(MAX_SPEED * random::<f32>()),
             Name::new("Prey"),
@@ -267,9 +270,10 @@ fn spawn_entities(commands: &mut Commands) {
         let rand_color = random::<f32>().min(0.1).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
+            Collider::rectangle(PLANT_SIZE, PLANT_SIZE),
             Sprite {
                 color: Color::linear_rgb(rand_color, 1.0, rand_color),
-                custom_size: Some(Vec2::splat(SQUARE_LEN)),
+                custom_size: Some(Vec2::splat(PLANT_SIZE)),
                 ..default()
             },
             Transform::from_xyz(0.0, -half_h + walls_paddings + (1280.0 - 720.0), 0.0),
@@ -279,7 +283,6 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
             Species::Plant,
-            Hunter::new(Species::Plant, 444.4),
             Speed::new(0.0),
             Name::new("Plant"),
         ));
@@ -611,7 +614,7 @@ fn prey_movement(
             // Steering force for smoother movement
             let current_velocity = Vec2::new(velocity.x, velocity.y);
             let steering_force = desired_velocity - current_velocity;
-            let max_force = flee_speed * 2.0; // Prey can change direction quickly when hunted
+            let max_force = flee_speed * 5.0; // Prey can change direction quickly when hunted
             let steering_force = steering_force.clamp_length_max(max_force);
 
             let new_velocity = current_velocity + steering_force * FIXED_TIME_STEP;
@@ -629,7 +632,7 @@ fn prey_movement(
 fn collision_kill_system(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionStarted>,
-    query: Query<(Option<&Hunter>, Option<&Species>), With<Prey>>,
+    query: Query<(Option<&Hunter>, Option<&Species>)>,
 ) {
     for event in collision_events.read() {
         // Get the components for both entities involved in the collision
