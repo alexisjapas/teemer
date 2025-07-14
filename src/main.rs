@@ -108,19 +108,29 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera2d::default());
 
     // Walls
-    create_walls(&mut commands);
+    generate_world(&mut commands);
 
     // Entities
     spawn_entities(&mut commands);
     
     // Texts
-    spawn_text(&mut commands);
+    spawn_hud(&mut commands);
 }
 
-fn create_walls(commands: &mut Commands) {
+fn generate_world(commands: &mut Commands) {
     let wall_restitution = 0.7;
     let half_w = WINDOW_WIDTH / 2.0;
     let half_h = WINDOW_HEIGHT / 2.0;
+    
+    // Water
+    commands.spawn((
+        Sprite {
+            color: Color::linear_rgb(0.0196, 0.267, 0.369),
+            custom_size: Some(Vec2::new(WINDOW_WIDTH, WINDOW_WIDTH)),
+            ..default()
+        },
+        Transform::from_xyz(0.0, (WINDOW_HEIGHT - WINDOW_WIDTH) / 2.0, 0.0)
+    ));
 
     // Top wall
     commands.spawn((
@@ -205,7 +215,7 @@ fn spawn_entities(commands: &mut Commands) {
 
     // Predators
     for _i in 0..NB_PREDATORS {
-        let rand_color = random::<f32>().min(0.2).max(0.0);
+        let rand_color = random::<f32>().min(0.1).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
             Sprite {
@@ -228,7 +238,7 @@ fn spawn_entities(commands: &mut Commands) {
     
     // Preys
     for _i in 0..NB_PREYS {
-        let rand_color = random::<f32>().min(0.2).max(0.0);
+        let rand_color = random::<f32>().min(0.1).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
             Sprite {
@@ -251,7 +261,7 @@ fn spawn_entities(commands: &mut Commands) {
 
     // Plants
     for _i in 0..NB_PLANTS {
-        let rand_color = random::<f32>().min(0.2).max(0.0);
+        let rand_color = random::<f32>().min(0.1).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
             Sprite {
@@ -277,7 +287,8 @@ fn spawn_entities(commands: &mut Commands) {
     }
 }
 
-fn spawn_text(commands: &mut Commands) {
+fn spawn_hud(commands: &mut Commands) {
+    // Predators
     commands.spawn((
         Text::new(format!("Predators: {}", NB_PREDATORS)),
         TextLayout::new_with_justify(JustifyText::Left),
@@ -292,6 +303,7 @@ fn spawn_text(commands: &mut Commands) {
         Species::Predator
     ));
     
+    // Preys
     commands.spawn((
         Text::new(format!("Preys: {}", NB_PREYS)),
         TextLayout::new_with_justify(JustifyText::Left),
@@ -306,6 +318,7 @@ fn spawn_text(commands: &mut Commands) {
         Species::Prey
     ));
     
+    // Plants
     commands.spawn((
         Text::new(format!("Plants: {}", NB_PLANTS)),
         TextLayout::new_with_justify(JustifyText::Left),
