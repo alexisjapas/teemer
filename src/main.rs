@@ -27,7 +27,9 @@ const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 const WALLS_THICKNESS: f32 = 8.0;
 
 /// Simulation parameters
-const NB_ENTITIES_PER_TEAM: i32 = 32;
+const NB_PREDATORS: i32 = 4;
+const NB_PREYS: i32 = 32;
+const NB_PLANTS: i32 = 64;
 const SQUARE_LEN: f32 = 16.0;
 const MAX_SPEED: f32 = 32.0 * if PREVIEW_MODE {4.0} else {1.0};
 
@@ -56,6 +58,7 @@ fn main() {
             predator_movement,
             prey_movement,
             collision_kill_system,
+            update_text
         ),
     )
     // Avian's physics
@@ -109,6 +112,9 @@ fn setup(mut commands: Commands) {
 
     // Entities
     spawn_entities(&mut commands);
+    
+    // Texts
+    spawn_text(&mut commands);
 }
 
 fn create_walls(commands: &mut Commands) {
@@ -197,13 +203,13 @@ fn spawn_entities(commands: &mut Commands) {
         CollisionEventsEnabled,
     );
 
-    // Fox
-    for _i in 0..NB_ENTITIES_PER_TEAM {
+    // Predators
+    for _i in 0..NB_PREDATORS {
         let rand_color = random::<f32>().min(0.2).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
             Sprite {
-                color: Color::linear_rgb(rand_color, 1.0, rand_color),
+                color: Color::linear_rgb(1.0, rand_color, rand_color),
                 custom_size: Some(Vec2::splat(SQUARE_LEN)),
                 ..default()
             },
@@ -213,15 +219,15 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
-            Species::Fox,
-            Hunter::new(Species::Chicken, 444.4),
+            Species::Predator,
+            Hunter::new(Species::Prey, 444.4),
             Speed::new(MAX_SPEED * random::<f32>()),
-            Name::new("Fox"),
+            Name::new("Predator"),
         ));
     }
     
-    // Chicken
-    for _i in 0..NB_ENTITIES_PER_TEAM {
+    // Preys
+    for _i in 0..NB_PREYS {
         let rand_color = random::<f32>().min(0.2).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
@@ -236,20 +242,20 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
-            Species::Chicken,
-            Hunter::new(Species::Snake, 444.4),
+            Species::Prey,
+            Hunter::new(Species::Plant, 444.4),
             Speed::new(MAX_SPEED * random::<f32>()),
-            Name::new("Chicken"),
+            Name::new("Prey"),
         ));
     }
 
-    // Snake
-    for _i in 0..NB_ENTITIES_PER_TEAM {
+    // Plants
+    for _i in 0..NB_PLANTS {
         let rand_color = random::<f32>().min(0.2).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
             Sprite {
-                color: Color::linear_rgb(1.0, rand_color, rand_color),
+                color: Color::linear_rgb(rand_color, 1.0, rand_color),
                 custom_size: Some(Vec2::splat(SQUARE_LEN)),
                 ..default()
             },
@@ -263,11 +269,69 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
-            Species::Snake,
-            Hunter::new(Species::Fox, 444.4),
-            Speed::new(MAX_SPEED * random::<f32>()),
-            Name::new("Snake"),
+            Species::Plant,
+            Hunter::new(Species::Plant, 444.4),
+            Speed::new(0.0),
+            Name::new("Plant"),
         ));
+    }
+}
+
+fn spawn_text(commands: &mut Commands) {
+    commands.spawn((
+        Text::new(format!("Predators: {}", NB_PREDATORS)),
+        TextLayout::new_with_justify(JustifyText::Left),
+        TextFont {font_size: 24.0, ..default()},
+        TextColor(Color::WHITE),
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(720.0 + 60.0),
+            left: Val::Px(108.0),
+            ..default()
+        },
+        Species::Predator
+    ));
+    
+    commands.spawn((
+        Text::new(format!("Preys: {}", NB_PREYS)),
+        TextLayout::new_with_justify(JustifyText::Left),
+        TextFont {font_size: 24.0, ..default()},
+        TextColor(Color::WHITE),
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(944.0),
+            left: Val::Px(108.0),
+            ..default()
+        },
+        Species::Prey
+    ));
+    
+    commands.spawn((
+        Text::new(format!("Plants: {}", NB_PLANTS)),
+        TextLayout::new_with_justify(JustifyText::Left),
+        TextFont {font_size: 24.0, ..default()},
+        TextColor(Color::WHITE),
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(1108.0),
+            left: Val::Px(108.0),
+            ..default()
+        },
+        Species::Plant
+    ));
+}
+
+fn update_text(species_query: Query<&Species, Without<Text>>, mut text_query: Query<(&mut Text, &Species), With<Text>>) {
+    let predators_count = species_query.iter().filter(|species| **species == Species::Predator).count();
+    let preys_count = species_query.iter().filter(|species| **species == Species::Prey).count();
+    let plants_count = species_query.iter().filter(|species| **species == Species::Plant).count();
+    
+    for (mut text, species) in text_query.iter_mut() {
+        match species {
+            Species::Predator => text.0 = format!("Predators: {}", predators_count),
+            Species::Prey => text.0 = format!("Preys: {}", preys_count),
+            Species::Plant => text.0 = format!("Plants: {}", plants_count)
+        }
     }
 }
 

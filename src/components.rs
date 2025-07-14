@@ -2,9 +2,9 @@ use bevy::prelude::*;
 
 #[derive(Component, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Species {
-    Fox,
-    Chicken,
-    Snake,
+    Predator,
+    Prey,
+    Plant,
 }
 
 #[derive(Component)]
