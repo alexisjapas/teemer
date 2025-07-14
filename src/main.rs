@@ -19,19 +19,21 @@ const PREVIEW_MODE: bool = cfg!(feature = "preview");
 const WINDOW_WIDTH: f32 = 720.0;
 const WINDOW_HEIGHT: f32 = 1280.0;
 const FRAMERATE: f32 = 30.0;
-const MAX_DURATION: f32 = 61.0 * if PREVIEW_MODE {4.0} else {1.0};
+const MAX_DURATION: f32 = 61.0 * if PREVIEW_MODE { 4.0 } else { 1.0 };
 const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
 const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
 /// HUD
 const WALLS_THICKNESS: f32 = 8.0;
+const ENTITIES_SIZE: f32 = 44.0;
+const FONT_SIZE: f32 = 24.0;
 
 /// Simulation parameters
 const NB_PREDATORS: i32 = 4;
 const NB_PREYS: i32 = 32;
 const NB_PLANTS: i32 = 64;
 const SQUARE_LEN: f32 = 16.0;
-const MAX_SPEED: f32 = 32.0 * if PREVIEW_MODE {4.0} else {1.0};
+const MAX_SPEED: f32 = 32.0 * if PREVIEW_MODE { 4.0 } else { 1.0 };
 
 /// Main
 fn main() {
@@ -58,7 +60,7 @@ fn main() {
             predator_movement,
             prey_movement,
             collision_kill_system,
-            update_text
+            update_text,
         ),
     )
     // Avian's physics
@@ -112,7 +114,7 @@ fn setup(mut commands: Commands) {
 
     // Entities
     spawn_entities(&mut commands);
-    
+
     // Texts
     spawn_hud(&mut commands);
 }
@@ -121,7 +123,7 @@ fn generate_world(commands: &mut Commands) {
     let wall_restitution = 0.7;
     let half_w = WINDOW_WIDTH / 2.0;
     let half_h = WINDOW_HEIGHT / 2.0;
-    
+
     // Water
     commands.spawn((
         Sprite {
@@ -129,7 +131,7 @@ fn generate_world(commands: &mut Commands) {
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WINDOW_WIDTH)),
             ..default()
         },
-        Transform::from_xyz(0.0, (WINDOW_HEIGHT - WINDOW_WIDTH) / 2.0, 0.0)
+        Transform::from_xyz(0.0, (WINDOW_HEIGHT - WINDOW_WIDTH) / 2.0, 0.0),
     ));
 
     // Top wall
@@ -235,7 +237,7 @@ fn spawn_entities(commands: &mut Commands) {
             Name::new("Predator"),
         ));
     }
-    
+
     // Preys
     for _i in 0..NB_PREYS {
         let rand_color = random::<f32>().min(0.1).max(0.0);
@@ -269,11 +271,7 @@ fn spawn_entities(commands: &mut Commands) {
                 custom_size: Some(Vec2::splat(SQUARE_LEN)),
                 ..default()
             },
-            Transform::from_xyz(
-                0.0,
-                -half_h + walls_paddings + (1280.0 - 720.0),
-                0.0,
-            ),
+            Transform::from_xyz(0.0, -half_h + walls_paddings + (1280.0 - 720.0), 0.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
@@ -292,7 +290,10 @@ fn spawn_hud(commands: &mut Commands) {
     commands.spawn((
         Text::new(format!("Predators: {}", NB_PREDATORS)),
         TextLayout::new_with_justify(JustifyText::Left),
-        TextFont {font_size: 24.0, ..default()},
+        TextFont {
+            font_size: FONT_SIZE,
+            ..default()
+        },
         TextColor(Color::WHITE),
         Node {
             position_type: PositionType::Absolute,
@@ -300,14 +301,28 @@ fn spawn_hud(commands: &mut Commands) {
             left: Val::Px(108.0),
             ..default()
         },
-        Species::Predator
+        Species::Predator,
     ));
-    
+    commands.spawn((
+        Sprite {
+            color: Color::linear_rgb(1.0, 0.0, 0.0),
+            custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
+            ..default()
+        },
+        RigidBody::Kinematic,
+        Transform::from_xyz(-WINDOW_WIDTH / 2.0 + 108.0 / 2.0, (WINDOW_HEIGHT / 2.0) - 720.0 - 60.0 - WALLS_THICKNESS - FONT_SIZE / 2.0, 0.0),
+        // Avian's physics
+        AngularVelocity(0.4)
+    ));
+
     // Preys
     commands.spawn((
         Text::new(format!("Preys: {}", NB_PREYS)),
         TextLayout::new_with_justify(JustifyText::Left),
-        TextFont {font_size: 24.0, ..default()},
+        TextFont {
+            font_size: 24.0,
+            ..default()
+        },
         TextColor(Color::WHITE),
         Node {
             position_type: PositionType::Absolute,
@@ -315,14 +330,28 @@ fn spawn_hud(commands: &mut Commands) {
             left: Val::Px(108.0),
             ..default()
         },
-        Species::Prey
+        Species::Prey,
     ));
-    
+    commands.spawn((
+        Sprite {
+            color: Color::linear_rgb(0.0, 0.0, 1.0),
+            custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
+            ..default()
+        },
+        RigidBody::Kinematic,
+        Transform::from_xyz(-WINDOW_WIDTH / 2.0 + 108.0 / 2.0, (WINDOW_HEIGHT / 2.0) - 944.0 - WALLS_THICKNESS - FONT_SIZE / 2.0, 0.0),
+        // Avian's physics
+        AngularVelocity(0.2)
+    ));
+
     // Plants
     commands.spawn((
         Text::new(format!("Plants: {}", NB_PLANTS)),
         TextLayout::new_with_justify(JustifyText::Left),
-        TextFont {font_size: 24.0, ..default()},
+        TextFont {
+            font_size: 24.0,
+            ..default()
+        },
         TextColor(Color::WHITE),
         Node {
             position_type: PositionType::Absolute,
@@ -330,20 +359,43 @@ fn spawn_hud(commands: &mut Commands) {
             left: Val::Px(108.0),
             ..default()
         },
-        Species::Plant
+        Species::Plant,
+    ));
+    commands.spawn((
+        Sprite {
+            color: Color::linear_rgb(0.0, 1.0, 0.0),
+            custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
+            ..default()
+        },
+        RigidBody::Kinematic,
+        Transform::from_xyz(-WINDOW_WIDTH / 2.0 + 108.0 / 2.0, (WINDOW_HEIGHT / 2.0) - 1108.0 - WALLS_THICKNESS - FONT_SIZE / 2.0, 0.0),
+        // Avian's physics
+        AngularVelocity(0.1)
     ));
 }
 
-fn update_text(species_query: Query<&Species, Without<Text>>, mut text_query: Query<(&mut Text, &Species), With<Text>>) {
-    let predators_count = species_query.iter().filter(|species| **species == Species::Predator).count();
-    let preys_count = species_query.iter().filter(|species| **species == Species::Prey).count();
-    let plants_count = species_query.iter().filter(|species| **species == Species::Plant).count();
-    
+fn update_text(
+    species_query: Query<&Species, Without<Text>>,
+    mut text_query: Query<(&mut Text, &Species), With<Text>>,
+) {
+    let predators_count = species_query
+        .iter()
+        .filter(|species| **species == Species::Predator)
+        .count();
+    let preys_count = species_query
+        .iter()
+        .filter(|species| **species == Species::Prey)
+        .count();
+    let plants_count = species_query
+        .iter()
+        .filter(|species| **species == Species::Plant)
+        .count();
+
     for (mut text, species) in text_query.iter_mut() {
         match species {
             Species::Predator => text.0 = format!("Predators: {}", predators_count),
             Species::Prey => text.0 = format!("Preys: {}", preys_count),
-            Species::Plant => text.0 = format!("Plants: {}", plants_count)
+            Species::Plant => text.0 = format!("Plants: {}", plants_count),
         }
     }
 }
