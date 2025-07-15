@@ -32,11 +32,11 @@ const TEXT_FONT_SIZE: f32 = 20.0;
 /// Simulation parameters
 const NB_PREDATORS: i32 = 4;
 const NB_PREY: i32 = 64;
-const NB_PLANTS: i32 = 64;
+const NB_PLANTS: i32 = 128;
 const PREDATOR_SIZE: f32 = 16.0;
 const PREY_SIZE: f32 = 8.0;
 const PLANT_SIZE: f32 = 4.0;
-const MAX_SPEED: f32 = 32.0 * if PREVIEW_MODE { 4.0 } else { 1.0 };
+const MAX_SPEED: f32 = 16.0 * if PREVIEW_MODE { 4.0 } else { 1.0 };
 
 /// Main
 fn main() {
@@ -92,7 +92,11 @@ fn main() {
 
 /// Systems
 // Spawn the 2-D camera and the ball entity
-fn setup(mut commands: Commands) {
+fn setup(
+    mut commands: Commands,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<ColorMaterial>>,
+) {
     // Create outputs directories
     if !PREVIEW_MODE {
         // Get and format date
@@ -116,7 +120,7 @@ fn setup(mut commands: Commands) {
     generate_world(&mut commands);
 
     // Entities
-    spawn_entities(&mut commands);
+    spawn_entities(&mut commands, meshes, materials);
 
     // Texts
     spawn_hud(&mut commands);
@@ -203,7 +207,11 @@ fn generate_world(commands: &mut Commands) {
     ));
 }
 
-fn spawn_entities(commands: &mut Commands) {
+fn spawn_entities(
+    commands: &mut Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
     let walls_paddings = WALLS_THICKNESS * 2.0 + 8.0;
     let half_w = WINDOW_WIDTH / 2.0;
     let half_h = WINDOW_HEIGHT / 2.0;
@@ -217,17 +225,28 @@ fn spawn_entities(commands: &mut Commands) {
     );
 
     // Predators
+    let triangle_vertices = vec![
+        Vec2::Y * PREDATOR_SIZE * 0.5,                         // Top vertex
+        Vec2::new(-PREDATOR_SIZE * 0.5, -PREDATOR_SIZE * 0.5), // Bottom left
+        Vec2::new(PREDATOR_SIZE * 0.5, -PREDATOR_SIZE * 0.5),  // Bottom right
+    ];
+    let triangle_mesh = meshes.add(Triangle2d::new(
+        triangle_vertices[0],
+        triangle_vertices[1],
+        triangle_vertices[2],
+    ));
     for _i in 0..NB_PREDATORS {
         let rand_color = random::<f32>().min(0.1).max(0.0);
+        let material = materials.add(ColorMaterial::from(Color::linear_rgb(
+            1.0, rand_color, rand_color,
+        )));
+
         commands.spawn((
             entity_bundle.clone(),
-            Collider::rectangle(PREDATOR_SIZE, PREDATOR_SIZE),
-            Sprite {
-                color: Color::linear_rgb(1.0, rand_color, rand_color),
-                custom_size: Some(Vec2::splat(PREDATOR_SIZE)),
-                ..default()
-            },
-            Transform::from_xyz(-half_w + walls_paddings, half_h - walls_paddings, 0.0),
+            Collider::convex_hull(triangle_vertices.clone()).unwrap(),
+            Mesh2d(triangle_mesh.clone()),
+            MeshMaterial2d(material),
+            Transform::from_xyz(-half_w + walls_paddings, half_h - walls_paddings, 3.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
@@ -251,7 +270,7 @@ fn spawn_entities(commands: &mut Commands) {
                 custom_size: Some(Vec2::splat(PREY_SIZE)),
                 ..default()
             },
-            Transform::from_xyz(half_w - walls_paddings, half_h - walls_paddings, 0.0),
+            Transform::from_xyz(half_w - walls_paddings, half_h - walls_paddings, 2.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
@@ -276,7 +295,7 @@ fn spawn_entities(commands: &mut Commands) {
                 custom_size: Some(Vec2::splat(PLANT_SIZE)),
                 ..default()
             },
-            Transform::from_xyz(0.0, -half_h + walls_paddings + (1280.0 - 720.0), 0.0),
+            Transform::from_xyz(0.0, -half_h + walls_paddings + (1280.0 - 720.0), 1.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
