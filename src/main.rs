@@ -25,18 +25,18 @@ const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
 /// HUD
 const WALLS_THICKNESS: f32 = 8.0;
-const ENTITIES_SIZE: f32 = 44.0;
+const ENTITIES_SIZE: f32 = 34.0;
 const TITLE_FONT_SIZE: f32 = 24.0;
 const TEXT_FONT_SIZE: f32 = 20.0;
 
 /// Simulation parameters
-const NB_PREDATORS: i32 = 4;
+const NB_PREDATORS: i32 = 2;
 const NB_PREY: i32 = 64;
 const NB_PLANTS: i32 = 128;
-const PREDATOR_SIZE: f32 = 16.0;
-const PREY_SIZE: f32 = 8.0;
-const PLANT_SIZE: f32 = 4.0;
-const MAX_SPEED: f32 = 16.0 * if PREVIEW_MODE { 4.0 } else { 1.0 };
+const PREDATOR_SIZE: f32 = 22.0;
+const PREY_SIZE: f32 = 11.0;
+const PLANT_SIZE: f32 = 8.0;
+const MAX_SPEED: f32 = 32.0 * if PREVIEW_MODE { 4.0 } else { 1.0 };
 
 /// Main
 fn main() {
@@ -62,6 +62,7 @@ fn main() {
             assign_targets,
             predator_movement,
             prey_movement,
+            update_entity_rotation,
             collision_kill_system,
             update_text,
         ),
@@ -94,8 +95,8 @@ fn main() {
 // Spawn the 2-D camera and the ball entity
 fn setup(
     mut commands: Commands,
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     // Create outputs directories
     if !PREVIEW_MODE {
@@ -120,10 +121,10 @@ fn setup(
     generate_world(&mut commands);
 
     // Entities
-    spawn_entities(&mut commands, meshes, materials);
+    spawn_entities(&mut commands, &mut meshes, &mut materials);
 
     // Texts
-    spawn_hud(&mut commands);
+    spawn_hud(&mut commands, &mut meshes, &mut materials);
 }
 
 fn generate_world(commands: &mut Commands) {
@@ -207,10 +208,21 @@ fn generate_world(commands: &mut Commands) {
     ));
 }
 
+fn create_polygon_vertices(radius: f32, nb_vertices: u8) -> Vec<Vec2> {
+    let mut vertices = Vec::new();
+    let angle_step = 2.0 * std::f32::consts::PI / nb_vertices as f32;
+
+    for i in 0..nb_vertices {
+        let angle = i as f32 * angle_step + std::f32::consts::PI / 2.0;
+        vertices.push(Vec2::new(radius * angle.cos(), radius * angle.sin()))
+    }
+    vertices
+}
+
 fn spawn_entities(
     commands: &mut Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
 ) {
     let walls_paddings = WALLS_THICKNESS * 2.0 + 8.0;
     let half_w = WINDOW_WIDTH / 2.0;
@@ -220,21 +232,12 @@ fn spawn_entities(
         RigidBody::Dynamic,
         Restitution::new(0.2), // Bouncing restitution
         Friction::new(0.2),
-        LockedAxes::ROTATION_LOCKED,
         CollisionEventsEnabled,
     );
 
     // Predators
-    let triangle_vertices = vec![
-        Vec2::Y * PREDATOR_SIZE * 0.5,                         // Top vertex
-        Vec2::new(-PREDATOR_SIZE * 0.5, -PREDATOR_SIZE * 0.5), // Bottom left
-        Vec2::new(PREDATOR_SIZE * 0.5, -PREDATOR_SIZE * 0.5),  // Bottom right
-    ];
-    let triangle_mesh = meshes.add(Triangle2d::new(
-        triangle_vertices[0],
-        triangle_vertices[1],
-        triangle_vertices[2],
-    ));
+    let predator_vertices = create_polygon_vertices(PREDATOR_SIZE, 3);
+    let predator_mesh = meshes.add(RegularPolygon::new(PREDATOR_SIZE, 3));
     for _i in 0..NB_PREDATORS {
         let rand_color = random::<f32>().min(0.1).max(0.0);
         let material = materials.add(ColorMaterial::from(Color::linear_rgb(
@@ -243,10 +246,11 @@ fn spawn_entities(
 
         commands.spawn((
             entity_bundle.clone(),
-            Collider::convex_hull(triangle_vertices.clone()).unwrap(),
-            Mesh2d(triangle_mesh.clone()),
+            Collider::convex_hull(predator_vertices.clone()).unwrap(),
+            Mesh2d(predator_mesh.clone()),
             MeshMaterial2d(material),
-            Transform::from_xyz(-half_w + walls_paddings, half_h - walls_paddings, 3.0),
+            Transform::from_xyz(-half_w + walls_paddings, half_h - walls_paddings, 3.0)
+                .with_rotation(Quat::from_rotation_z(0.0)),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
@@ -254,22 +258,25 @@ fn spawn_entities(
             )),
             Species::Predator,
             Hunter::new(Species::Prey, 444.4),
-            Speed::new(MAX_SPEED * random::<f32>()),
+            Speed::new(MAX_SPEED * random::<f32>().max(0.3)),
             Name::new("Predator"),
         ));
     }
 
     // Prey
+    let prey_vertices = create_polygon_vertices(PREY_SIZE, 4);
+    let prey_mesh = meshes.add(RegularPolygon::new(PREY_SIZE, 4));
     for _i in 0..NB_PREY {
         let rand_color = random::<f32>().min(0.1).max(0.0);
+        let material = materials.add(ColorMaterial::from(Color::linear_rgb(
+            rand_color, rand_color, 1.0,
+        )));
+
         commands.spawn((
             entity_bundle.clone(),
-            Collider::rectangle(PREY_SIZE, PREY_SIZE),
-            Sprite {
-                color: Color::linear_rgb(rand_color, rand_color, 1.0),
-                custom_size: Some(Vec2::splat(PREY_SIZE)),
-                ..default()
-            },
+            Collider::convex_hull(prey_vertices.clone()).unwrap(),
+            Mesh2d(prey_mesh.clone()),
+            MeshMaterial2d(material),
             Transform::from_xyz(half_w - walls_paddings, half_h - walls_paddings, 2.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
@@ -279,22 +286,25 @@ fn spawn_entities(
             Species::Prey,
             Prey::new(222.2),
             Hunter::new(Species::Plant, 444.4),
-            Speed::new(MAX_SPEED * random::<f32>()),
+            Speed::new(MAX_SPEED * random::<f32>().max(0.1)),
             Name::new("Prey"),
         ));
     }
 
     // Plants
+    let plant_vertices = create_polygon_vertices(PLANT_SIZE, 5);
+    let plant_mesh = meshes.add(RegularPolygon::new(PLANT_SIZE, 5));
     for _i in 0..NB_PLANTS {
         let rand_color = random::<f32>().min(0.1).max(0.0);
+        let material = materials.add(ColorMaterial::from(Color::linear_rgb(
+            rand_color, 1.0, rand_color,
+        )));
+
         commands.spawn((
             entity_bundle.clone(),
-            Collider::rectangle(PLANT_SIZE, PLANT_SIZE),
-            Sprite {
-                color: Color::linear_rgb(rand_color, 1.0, rand_color),
-                custom_size: Some(Vec2::splat(PLANT_SIZE)),
-                ..default()
-            },
+            Collider::convex_hull(plant_vertices.clone()).unwrap(),
+            Mesh2d(plant_mesh.clone()),
+            MeshMaterial2d(material),
             Transform::from_xyz(0.0, -half_h + walls_paddings + (1280.0 - 720.0), 1.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
@@ -308,7 +318,11 @@ fn spawn_entities(
     }
 }
 
-fn spawn_hud(commands: &mut Commands) {
+fn spawn_hud(
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+) {
     // Predators
     commands.spawn((
         Text::new(format!("Predators: {}", NB_PREDATORS)),
@@ -341,12 +355,11 @@ fn spawn_hud(commands: &mut Commands) {
             ..default()
         },
     ));
+    let predator_mesh = meshes.add(RegularPolygon::new(ENTITIES_SIZE, 3));
+    let predator_material = materials.add(ColorMaterial::from(Color::linear_rgb(1.0, 0.0, 0.0)));
     commands.spawn((
-        Sprite {
-            color: Color::linear_rgb(1.0, 0.0, 0.0),
-            custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
-            ..default()
-        },
+        Mesh2d(predator_mesh),
+        MeshMaterial2d(predator_material),
         RigidBody::Kinematic,
         Transform::from_xyz(
             -WINDOW_WIDTH / 2.0 + 108.0 / 2.0,
@@ -391,12 +404,11 @@ fn spawn_hud(commands: &mut Commands) {
             ..default()
         },
     ));
+    let prey_mesh = meshes.add(RegularPolygon::new(ENTITIES_SIZE, 4));
+    let prey_material = materials.add(ColorMaterial::from(Color::linear_rgb(0.0, 0.0, 1.0)));
     commands.spawn((
-        Sprite {
-            color: Color::linear_rgb(0.0, 0.0, 1.0),
-            custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
-            ..default()
-        },
+        Mesh2d(prey_mesh),
+        MeshMaterial2d(prey_material),
         RigidBody::Kinematic,
         Transform::from_xyz(
             -WINDOW_WIDTH / 2.0 + 108.0 / 2.0,
@@ -439,12 +451,11 @@ fn spawn_hud(commands: &mut Commands) {
             ..default()
         },
     ));
+    let plant_mesh = meshes.add(RegularPolygon::new(ENTITIES_SIZE, 5));
+    let plant_material = materials.add(ColorMaterial::from(Color::linear_rgb(0.0, 1.0, 0.0)));
     commands.spawn((
-        Sprite {
-            color: Color::linear_rgb(0.0, 1.0, 0.0),
-            custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
-            ..default()
-        },
+        Mesh2d(plant_mesh),
+        MeshMaterial2d(plant_material),
         RigidBody::Kinematic,
         Transform::from_xyz(
             -WINDOW_WIDTH / 2.0 + 108.0 / 2.0,
@@ -644,6 +655,36 @@ fn prey_movement(
         } else {
             prey_comp.current_threat = None;
             // TODO Add behaviour when not fleeing
+        }
+    }
+}
+
+// Rotation
+fn update_entity_rotation(
+    mut query: Query<(&mut Transform, &LinearVelocity, &Species), With<Species>>,
+) {
+    for (mut transform, velocity, species) in query.iter_mut() {
+        // Skip plants - they don't rotate
+        if *species == Species::Plant {
+            continue;
+        }
+
+        let velocity_vec = Vec2::new(velocity.x, velocity.y);
+
+        // Only rotate if the entity is actually moving
+        if velocity_vec.length() > 1.0 {
+            // Calculate the angle based on velocity direction
+            let angle = velocity_vec.y.atan2(velocity_vec.x);
+
+            // Add offset to make apex/corner point forward
+            let rotation_offset = match species {
+                Species::Predator => -std::f32::consts::PI / 2.0, // Triangle: rotate so apex points forward
+                Species::Prey => std::f32::consts::PI / 4.0, // Square: rotate so corner points forward
+                Species::Plant => 0.0,                       // Not used, but for completeness
+            };
+
+            // Set the rotation to face the movement direction with offset
+            transform.rotation = Quat::from_rotation_z(angle + rotation_offset);
         }
     }
 }
