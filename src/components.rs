@@ -38,6 +38,9 @@ impl Prey {
 }
 
 #[derive(Component, Clone)]
+pub struct Consumable;
+
+#[derive(Component, Clone)]
 pub struct Speed(pub f32);
 impl Speed {
     pub fn new(value: f32) -> Self {

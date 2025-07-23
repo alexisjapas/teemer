@@ -214,6 +214,7 @@ fn spawn_entities(commands: &mut Commands) {
         Friction::new(0.2),
         LockedAxes::ROTATION_LOCKED,
         CollisionEventsEnabled,
+        Consumable
     );
 
     // Predators
@@ -503,7 +504,7 @@ fn manual_physics_step(mut physics_time: ResMut<Time<Physics>>) {
 // Hunting
 fn assign_targets(
     mut predators: Query<(Entity, &mut Hunter, &Transform, &Species), With<Hunter>>,
-    potential_prey: Query<(Entity, &Transform, &Species), With<Species>>,
+    potential_prey: Query<(Entity, &Transform, &Species), (With<Species>, With<Consumable>)>,
 ) {
     for (_, mut predator, predator_transform, _) in predators.iter_mut() {
         // Clear target if out of range or dead
