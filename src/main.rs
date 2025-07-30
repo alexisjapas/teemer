@@ -102,11 +102,12 @@ fn generate_world(commands: &mut Commands) {
     let wall_restitution = 0.7;
     let half_w = WINDOW_WIDTH / 2.0;
     let half_h = WINDOW_HEIGHT / 2.0;
+    let middle_wall_h = -half_h + WALLS_THICKNESS / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH);
 
     // Water
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.0196, 0.267, 0.369),
+            color: Color::linear_rgb(0.0196 / 3.0, 0.267 / 3.0, 0.369 / 3.0),
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WINDOW_WIDTH)),
             ..default()
         },
@@ -135,7 +136,7 @@ fn generate_world(commands: &mut Commands) {
         },
         RigidBody::Static,
         Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
-        Transform::from_xyz(0.0, -half_h + WALLS_THICKNESS / 2.0 + (1280.0 - 720.0), 0.0),
+        Transform::from_xyz(0.0, middle_wall_h, 0.0),
         Restitution::new(wall_restitution),
     ));
 
@@ -183,6 +184,7 @@ fn spawn_entities(commands: &mut Commands) {
     let walls_paddings = WALLS_THICKNESS * 2.0 + 8.0;
     let half_w = WINDOW_WIDTH / 2.0;
     let half_h = WINDOW_HEIGHT / 2.0;
+    let middle_wall_h = -half_h + WALLS_THICKNESS / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH);
 
     let entity_bundle = (
         RigidBody::Dynamic,
@@ -196,6 +198,7 @@ fn spawn_entities(commands: &mut Commands) {
     // Predators
     for _i in 0..NB_PREDATORS {
         let rand_color = random::<f32>().min(0.1).max(0.0);
+        let rand_speed_factor = random::<f32>().max(0.1);
         commands.spawn((
             entity_bundle.clone(),
             Collider::rectangle(PREDATOR_SIZE, PREDATOR_SIZE),
@@ -204,15 +207,19 @@ fn spawn_entities(commands: &mut Commands) {
                 custom_size: Some(Vec2::splat(PREDATOR_SIZE)),
                 ..default()
             },
-            Transform::from_xyz(-half_w + walls_paddings, half_h - walls_paddings, 0.0),
+            Transform::from_xyz(
+                -half_w + walls_paddings + PREDATOR_SIZE,
+                half_h - walls_paddings - PREDATOR_SIZE,
+                0.0,
+            ),
             // Avian's physics
             LinearVelocity(Vec2::new(
-                MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
+                MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
             )),
             Species::Predator,
             Hunter::new(Species::Prey, 444.4),
-            Speed::new(MAX_SPEED * random::<f32>().max(0.1)),
+            Speed::new(MAX_SPEED * rand_speed_factor),
             Name::new("Predator"),
         ));
     }
@@ -228,15 +235,19 @@ fn spawn_entities(commands: &mut Commands) {
                 custom_size: Some(Vec2::splat(PREY_SIZE)),
                 ..default()
             },
-            Transform::from_xyz(half_w - walls_paddings, half_h - walls_paddings, 0.0),
+            Transform::from_xyz(
+                half_w - walls_paddings - PREY_SIZE,
+                half_h - walls_paddings - PREY_SIZE,
+                0.0,
+            ),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
             )),
             Species::Prey,
-            Prey::new(222.2),
-            Hunter::new(Species::Plant, 444.4),
+            Prey::new(333.3),
+            Hunter::new(Species::Plant, 222.2),
             Speed::new(MAX_SPEED * random::<f32>().max(0.2)),
             Name::new("Prey"),
         ));
@@ -253,7 +264,7 @@ fn spawn_entities(commands: &mut Commands) {
                 custom_size: Some(Vec2::splat(PLANT_SIZE)),
                 ..default()
             },
-            Transform::from_xyz(0.0, -half_h + walls_paddings + (1280.0 - 720.0), 0.0),
+            Transform::from_xyz(0.0, middle_wall_h + walls_paddings + PLANT_SIZE, 0.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
@@ -267,7 +278,11 @@ fn spawn_entities(commands: &mut Commands) {
 }
 
 fn spawn_hud(commands: &mut Commands) {
+    let hud_left_abs = WINDOW_WIDTH * 0.15;
+
     // Predators
+    let predators_top_abs =
+        WINDOW_WIDTH + hud_left_abs / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH) * 0.0 / 4.0;
     commands.spawn((
         Text::new(format!("Predators: {}", NB_PREDATORS)),
         TextLayout::new_with_justify(JustifyText::Left),
@@ -278,14 +293,14 @@ fn spawn_hud(commands: &mut Commands) {
         TextColor(Color::WHITE),
         Node {
             position_type: PositionType::Absolute,
-            top: Val::Px(720.0 + 60.0),
-            left: Val::Px(108.0),
+            top: Val::Px(predators_top_abs),
+            left: Val::Px(hud_left_abs),
             ..default()
         },
         Species::Predator,
     ));
     commands.spawn((
-        Text::new("Predators have no fear. They hunt prey\nuntil there's nothing left to eat."),
+        Text::new("Predators have no fear. They hunt prey until\nthere's nothing left to eat."),
         TextLayout::new_with_justify(JustifyText::Left),
         TextFont {
             font_size: TEXT_FONT_SIZE,
@@ -294,8 +309,8 @@ fn spawn_hud(commands: &mut Commands) {
         TextColor(Color::WHITE),
         Node {
             position_type: PositionType::Absolute,
-            top: Val::Px(720.0 + 60.0 + TITLE_FONT_SIZE * 2.0),
-            left: Val::Px(108.0 + 10.0),
+            top: Val::Px(predators_top_abs + TITLE_FONT_SIZE * 2.0),
+            left: Val::Px(hud_left_abs + 10.0),
             ..default()
         },
     ));
@@ -307,8 +322,8 @@ fn spawn_hud(commands: &mut Commands) {
         },
         RigidBody::Kinematic,
         Transform::from_xyz(
-            -WINDOW_WIDTH / 2.0 + 108.0 / 2.0,
-            (WINDOW_HEIGHT / 2.0) - 720.0 - 60.0 - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
+            -WINDOW_WIDTH / 2.0 + hud_left_abs / 2.0,
+            (WINDOW_HEIGHT / 2.0) - predators_top_abs - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
             0.0,
         ),
         // Avian's physics
@@ -316,18 +331,20 @@ fn spawn_hud(commands: &mut Commands) {
     ));
 
     // Prey
+    let prey_top_abs =
+        WINDOW_WIDTH + hud_left_abs / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH) * 1.0 / 4.0;
     commands.spawn((
         Text::new(format!("Prey: {}", NB_PREY)),
         TextLayout::new_with_justify(JustifyText::Left),
         TextFont {
-            font_size: 24.0,
+            font_size: TITLE_FONT_SIZE,
             ..default()
         },
         TextColor(Color::WHITE),
         Node {
             position_type: PositionType::Absolute,
-            top: Val::Px(944.0),
-            left: Val::Px(108.0),
+            top: Val::Px(prey_top_abs),
+            left: Val::Px(hud_left_abs),
             ..default()
         },
         Species::Prey,
@@ -344,8 +361,8 @@ fn spawn_hud(commands: &mut Commands) {
         TextColor(Color::WHITE),
         Node {
             position_type: PositionType::Absolute,
-            top: Val::Px(944.0 + TITLE_FONT_SIZE * 2.0),
-            left: Val::Px(108.0 + 10.0),
+            top: Val::Px(prey_top_abs + TITLE_FONT_SIZE * 2.0),
+            left: Val::Px(hud_left_abs + 10.0),
             ..default()
         },
     ));
@@ -357,8 +374,8 @@ fn spawn_hud(commands: &mut Commands) {
         },
         RigidBody::Kinematic,
         Transform::from_xyz(
-            -WINDOW_WIDTH / 2.0 + 108.0 / 2.0,
-            (WINDOW_HEIGHT / 2.0) - 944.0 - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
+            -WINDOW_WIDTH / 2.0 + hud_left_abs / 2.0,
+            (WINDOW_HEIGHT / 2.0) - prey_top_abs - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
             0.0,
         ),
         // Avian's physics
@@ -366,24 +383,26 @@ fn spawn_hud(commands: &mut Commands) {
     ));
 
     // Plants
+    let plants_top_abs =
+        WINDOW_WIDTH + hud_left_abs / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH) * 2.0 / 4.0;
     commands.spawn((
         Text::new(format!("Plants: {}", NB_PLANTS)),
         TextLayout::new_with_justify(JustifyText::Left),
         TextFont {
-            font_size: 24.0,
+            font_size: TITLE_FONT_SIZE,
             ..default()
         },
         TextColor(Color::WHITE),
         Node {
             position_type: PositionType::Absolute,
-            top: Val::Px(1108.0),
-            left: Val::Px(108.0),
+            top: Val::Px(plants_top_abs),
+            left: Val::Px(hud_left_abs),
             ..default()
         },
         Species::Plant,
     ));
     commands.spawn((
-        Text::new("Plants have no abilities. They are eaten\nby prey (so aren't they also...?)."),
+        Text::new("Plants have no abilities. They are eaten by prey\n(so aren't they also..?)."),
         TextLayout::new_with_justify(JustifyText::Left),
         TextFont {
             font_size: TEXT_FONT_SIZE,
@@ -392,8 +411,8 @@ fn spawn_hud(commands: &mut Commands) {
         TextColor(Color::WHITE),
         Node {
             position_type: PositionType::Absolute,
-            top: Val::Px(1108.0 + TITLE_FONT_SIZE * 2.0),
-            left: Val::Px(108.0 + 10.0),
+            top: Val::Px(plants_top_abs + TITLE_FONT_SIZE * 2.0),
+            left: Val::Px(hud_left_abs + 10.0),
             ..default()
         },
     ));
@@ -405,8 +424,8 @@ fn spawn_hud(commands: &mut Commands) {
         },
         RigidBody::Kinematic,
         Transform::from_xyz(
-            -WINDOW_WIDTH / 2.0 + 108.0 / 2.0,
-            (WINDOW_HEIGHT / 2.0) - 1108.0 - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
+            -WINDOW_WIDTH / 2.0 + hud_left_abs / 2.0,
+            (WINDOW_HEIGHT / 2.0) - plants_top_abs - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
             0.0,
         ),
         // Avian's physics
