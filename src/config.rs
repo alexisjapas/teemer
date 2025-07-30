@@ -14,9 +14,9 @@ pub const TITLE_FONT_SIZE: f32 = 36.0;
 pub const TEXT_FONT_SIZE: f32 = 30.0;
 
 /// Simulation parameters
-pub const NB_PREDATORS: i32 = 5;
+pub const NB_PREDATORS: i32 = 3;
 pub const NB_PREY: i32 = 111;
-pub const NB_PLANTS: i32 = 222;
+pub const NB_PLANTS: i32 = 333;
 pub const PREDATOR_SIZE: f32 = 11.0;
 pub const PREY_SIZE: f32 = 7.0;
 pub const PLANT_SIZE: f32 = 5.0;

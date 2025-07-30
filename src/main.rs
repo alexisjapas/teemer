@@ -227,6 +227,7 @@ fn spawn_entities(commands: &mut Commands) {
     // Prey
     for _i in 0..NB_PREY {
         let rand_color = random::<f32>().min(0.1).max(0.0);
+        let rand_speed_factor = random::<f32>().max(0.2);
         commands.spawn((
             entity_bundle.clone(),
             Collider::rectangle(PREY_SIZE, PREY_SIZE),
@@ -242,13 +243,13 @@ fn spawn_entities(commands: &mut Commands) {
             ),
             // Avian's physics
             LinearVelocity(Vec2::new(
-                MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
+                MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
             )),
             Species::Prey,
             Prey::new(333.3),
             Hunter::new(Species::Plant, 222.2),
-            Speed::new(MAX_SPEED * random::<f32>().max(0.2)),
+            Speed::new(MAX_SPEED * rand_speed_factor),
             Name::new("Prey"),
         ));
     }
