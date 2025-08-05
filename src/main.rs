@@ -35,12 +35,16 @@ fn main() {
     .add_systems(
         Update,
         (
+            plant_regeneration_system,
             assign_targets,
             predator_movement,
             prey_movement,
+            movement_energy,
             collision_kill_system,
+            death,
             update_text,
-        ),
+        )
+            .chain(),
     )
     // Avian's physics
     .insert_resource(Gravity(Vec2::ZERO))
@@ -66,8 +70,7 @@ fn main() {
     app.run();
 }
 
-/// Systems
-// Spawn the 2-D camera and the ball entity
+/// Setup
 fn setup(mut commands: Commands) {
     // Create outputs directories
     if !PREVIEW_MODE {
@@ -98,6 +101,7 @@ fn setup(mut commands: Commands) {
     spawn_hud(&mut commands);
 }
 
+/// Simulation
 fn generate_world(commands: &mut Commands) {
     let wall_restitution = 0.7;
     let half_w = WINDOW_WIDTH / 2.0;
@@ -107,7 +111,7 @@ fn generate_world(commands: &mut Commands) {
     // Water
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.0196 / 3.0, 0.267 / 3.0, 0.369 / 3.0),
+            color: Color::linear_rgb(0.0196 / 7.0, 0.267 / 7.0, 0.369 / 7.0),
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WINDOW_WIDTH)),
             ..default()
         },
@@ -218,9 +222,12 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
             )),
             Species::Predator,
-            Hunter::new(Species::Prey, 444.4),
+            Hunter::new(Species::Prey, 222.2),
             Speed::new(MAX_SPEED * rand_speed_factor),
+            Energy::new(INITIAL_PREDATOR_ENERGY, MAX_PREDATOR_ENERGY),
+            Size::new(PREDATOR_SIZE),
             Name::new("Predator"),
+            ActiveMover,
         ));
     }
 
@@ -247,10 +254,13 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
             )),
             Species::Prey,
-            Prey::new(333.3),
-            Hunter::new(Species::Plant, 222.2),
+            Prey::new(137.11),
+            Hunter::new(Species::Plant, 111.1),
             Speed::new(MAX_SPEED * rand_speed_factor),
+            Energy::new(INITIAL_PREY_ENERGY, MAX_PREY_ENERGY),
+            Size::new(PREY_SIZE),
             Name::new("Prey"),
+            ActiveMover,
         ));
     }
 
@@ -273,11 +283,15 @@ fn spawn_entities(commands: &mut Commands) {
             )),
             Species::Plant,
             Speed::new(0.0),
+            Energy::new(INITIAL_PLANT_ENERGY, MAX_PLANT_ENERGY),
+            Size::new(PLANT_SIZE),
             Name::new("Plant"),
+            Photosynthesis,
         ));
     }
 }
 
+/// HUD
 fn spawn_hud(commands: &mut Commands) {
     let hud_left_abs = WINDOW_WIDTH * 0.15;
 
@@ -328,7 +342,7 @@ fn spawn_hud(commands: &mut Commands) {
             0.0,
         ),
         // Avian's physics
-        AngularVelocity(0.4),
+        AngularVelocity(0.3),
     ));
 
     // Prey

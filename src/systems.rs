@@ -9,70 +9,29 @@ use crate::components::*;
 use crate::config::*;
 use crate::resources::*;
 
-pub fn update_text(
-    species_query: Query<&Species, Without<Text>>,
-    mut text_query: Query<(&mut Text, &Species), With<Text>>,
+/// Simulation
+pub fn plant_regeneration_system(mut plants: Query<&mut Energy, With<Photosynthesis>>) {
+    for mut energy in plants.iter_mut() {
+        energy.gain(PLANT_ENERGY_REGEN * FIXED_TIME_STEP);
+    }
+}
+
+pub fn movement_energy(
+    mut entities: Query<(&mut Energy, &LinearVelocity, &Size), With<ActiveMover>>,
 ) {
-    let predators_count = species_query
-        .iter()
-        .filter(|species| **species == Species::Predator)
-        .count();
-    let prey_count = species_query
-        .iter()
-        .filter(|species| **species == Species::Prey)
-        .count();
-    let plants_count = species_query
-        .iter()
-        .filter(|species| **species == Species::Plant)
-        .count();
-
-    for (mut text, species) in text_query.iter_mut() {
-        match species {
-            Species::Predator => text.0 = format!("Predators: {}", predators_count),
-            Species::Prey => text.0 = format!("Prey: {}", prey_count),
-            Species::Plant => text.0 = format!("Plants: {}", plants_count),
-        }
+    // todo only take into account active velocity. Take mass into account.
+    for (mut energy, velocity, size) in entities.iter_mut() {
+        let speed = velocity.length();
+        let energy_cost = speed
+            * speed
+            * size.value()
+            * size.value()
+            * MOVEMENT_ENERGY_COST_FACTOR
+            * FIXED_TIME_STEP;
+        energy.lose(energy_cost);
     }
 }
 
-pub fn take_frame_screenshot(
-    mut commands: Commands,
-    mut frame_counter: Local<u32>,
-    mut exit: EventWriter<AppExit>,
-    frames_dir: Res<FramesDir>,
-) {
-    if *frame_counter >= MAX_FRAMES_TO_CAPTURE {
-        println!("Generation done. Exiting.");
-        exit.write(AppExit::Success);
-        return;
-    }
-
-    let path = format!("{}/frame_{:04}.png", frames_dir.0, *frame_counter);
-    *frame_counter += 1;
-    commands
-        .spawn(Screenshot::primary_window())
-        .observe(save_to_disk(path));
-}
-
-pub fn preview_frame_counter(mut frame_counter: Local<u32>, mut exit: EventWriter<AppExit>) {
-    if *frame_counter >= MAX_FRAMES_TO_CAPTURE {
-        println!("Generation done. Exiting.");
-        exit.write(AppExit::Success);
-        return;
-    }
-    *frame_counter += 1;
-}
-
-pub fn no_capture_in_progress(capturing: Query<(), With<Capturing>>) -> bool {
-    capturing.is_empty()
-}
-
-pub fn manual_physics_step(mut physics_time: ResMut<Time<Physics>>) {
-    println!("Physics step advancing.");
-    physics_time.advance_by(std::time::Duration::from_secs_f32(FIXED_TIME_STEP));
-}
-
-// Hunting
 pub fn assign_targets(
     mut predators: Query<(Entity, &mut Hunter, &Transform, &Species), With<Hunter>>,
     potential_prey: Query<(Entity, &Transform, &Species), (With<Species>, With<Consumable>)>,
@@ -204,18 +163,30 @@ pub fn prey_movement(
 pub fn collision_kill_system(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionStarted>,
-    query: Query<(Option<&Hunter>, Option<&Species>)>,
+    mut query: Query<(Option<&Hunter>, Option<&Species>, Option<&mut Energy>)>,
 ) {
     for event in collision_events.read() {
+        let entity1 = event.0;
+        let entity2 = event.1;
+
         // Get the components for both entities involved in the collision
-        let Ok([entity1_comps, entity2_comps]) = query.get_many([event.0, event.1]) else {
+        let Ok([mut entity1_comps, mut entity2_comps]) = query.get_many_mut([entity1, entity2])
+        else {
             continue;
         };
 
         // Check Case 1: Entity1 is the predator, Entity2 is the prey
         if let (Some(predator), Some(prey_species)) = (entity1_comps.0, entity2_comps.1) {
             if predator.hunts == *prey_species {
-                commands.entity(event.1).despawn();
+                // Get part of prey energy
+                if let Some(prey_energy) = entity2_comps.2.as_ref() {
+                    let energy_gained = prey_energy.value() * ENERGY_TRANSFER_RATE;
+                    if let Some(predator_energy) = entity1_comps.2.as_mut() {
+                        predator_energy.gain(energy_gained);
+                    }
+                }
+                // Kill the entity
+                commands.entity(entity2).despawn();
                 continue;
             }
         }
@@ -223,8 +194,89 @@ pub fn collision_kill_system(
         // Check Case 2: Entity2 is the predator, Entity1 is the prey
         if let (Some(predator), Some(prey_species)) = (entity2_comps.0, entity1_comps.1) {
             if predator.hunts == *prey_species {
-                commands.entity(event.0).despawn();
+                // Get part of prey energy
+                if let Some(prey_energy) = entity1_comps.2.as_ref() {
+                    let energy_gained = prey_energy.value() * ENERGY_TRANSFER_RATE;
+                    if let Some(predator_energy) = entity2_comps.2.as_mut() {
+                        predator_energy.gain(energy_gained);
+                    }
+                }
+                // Kill entity
+                commands.entity(entity1).despawn();
             }
         }
     }
+}
+
+pub fn death(mut commands: Commands, entities: Query<(Entity, &Energy), With<Species>>) {
+    for (entity, energy) in entities.iter() {
+        if energy.value() <= 0.0 {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+/// HUD
+pub fn update_text(
+    species_query: Query<&Species, Without<Text>>,
+    mut text_query: Query<(&mut Text, &Species), With<Text>>,
+) {
+    let predators_count = species_query
+        .iter()
+        .filter(|species| **species == Species::Predator)
+        .count();
+    let prey_count = species_query
+        .iter()
+        .filter(|species| **species == Species::Prey)
+        .count();
+    let plants_count = species_query
+        .iter()
+        .filter(|species| **species == Species::Plant)
+        .count();
+
+    for (mut text, species) in text_query.iter_mut() {
+        match species {
+            Species::Predator => text.0 = format!("Predators: {}", predators_count),
+            Species::Prey => text.0 = format!("Prey: {}", prey_count),
+            Species::Plant => text.0 = format!("Plants: {}", plants_count),
+        }
+    }
+}
+
+/// Capture
+pub fn take_frame_screenshot(
+    mut commands: Commands,
+    mut frame_counter: Local<u32>,
+    mut exit: EventWriter<AppExit>,
+    frames_dir: Res<FramesDir>,
+) {
+    if *frame_counter >= MAX_FRAMES_TO_CAPTURE {
+        println!("Generation done. Exiting.");
+        exit.write(AppExit::Success);
+        return;
+    }
+
+    let path = format!("{}/frame_{:04}.png", frames_dir.0, *frame_counter);
+    *frame_counter += 1;
+    commands
+        .spawn(Screenshot::primary_window())
+        .observe(save_to_disk(path));
+}
+
+pub fn preview_frame_counter(mut frame_counter: Local<u32>, mut exit: EventWriter<AppExit>) {
+    if *frame_counter >= MAX_FRAMES_TO_CAPTURE {
+        println!("Generation done. Exiting.");
+        exit.write(AppExit::Success);
+        return;
+    }
+    *frame_counter += 1;
+}
+
+pub fn no_capture_in_progress(capturing: Query<(), With<Capturing>>) -> bool {
+    capturing.is_empty()
+}
+
+pub fn manual_physics_step(mut physics_time: ResMut<Time<Physics>>) {
+    println!("Physics step advancing.");
+    physics_time.advance_by(std::time::Duration::from_secs_f32(FIXED_TIME_STEP));
 }

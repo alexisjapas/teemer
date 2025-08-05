@@ -50,4 +50,48 @@ impl Speed {
 }
 
 #[derive(Component, Clone)]
+pub struct Energy {
+    pub current: f32,
+    pub max: f32,
+}
+impl Energy {
+    pub fn new(initial: f32, max: f32) -> Self {
+        Self {
+            current: initial,
+            max: max,
+        }
+    }
+
+    pub fn value(&self) -> f32 {
+        self.current
+    }
+
+    pub fn gain(&mut self, amount: f32) {
+        self.current = (self.current + amount).min(self.max);
+    }
+
+    pub fn lose(&mut self, amount: f32) {
+        self.current -= amount;
+    }
+}
+
+#[derive(Component, Clone)]
+pub struct Size(f32);
+impl Size {
+    pub fn new(value: f32) -> Self {
+        Self(value)
+    }
+
+    pub fn value(&self) -> f32 {
+        self.0
+    }
+}
+
+#[derive(Component, Clone)]
 pub struct Consumable;
+
+#[derive(Component, Clone)]
+pub struct ActiveMover;
+
+#[derive(Component, Clone)]
+pub struct Photosynthesis;
