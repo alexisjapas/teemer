@@ -1,7 +1,7 @@
 /// Video parameters
 pub const PREVIEW_MODE: bool = cfg!(feature = "preview");
-pub const WINDOW_WIDTH: f32 = 720.0;
-pub const WINDOW_HEIGHT: f32 = 1280.0;
+pub const WINDOW_WIDTH: f32 = 1080.0;
+pub const WINDOW_HEIGHT: f32 = if WINDOW_WIDTH == 720.0 {1280.0} else {1920.0};
 pub const FRAMERATE: f32 = 30.0;
 pub const MAX_DURATION: f32 = 61.0 * if PREVIEW_MODE { 3.0 } else { 1.0 };
 pub const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
@@ -15,7 +15,7 @@ pub const TEXT_FONT_SIZE: f32 = 20.0 * WINDOW_WIDTH / 720.0;
 
 /// Simulation parameters
 pub const MAX_SPEED: f32 = 21.0 * WINDOW_WIDTH / 720.0 * if PREVIEW_MODE { 3.0 } else { 1.0 };
-pub const MOVEMENT_ENERGY_COST_FACTOR: f32 = 3.0E-5;
+pub const MOVEMENT_ENERGY_COST_FACTOR: f32 = 3.0E-5 * if PREVIEW_MODE { 1.0 } else { 3.0 };
 pub const ENERGY_TRANSFER_RATE: f32 = 1.0 / 2.0;
 
 pub const NB_PREDATORS: i32 = 4;
