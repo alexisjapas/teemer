@@ -488,6 +488,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_capture"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04b91e870840a154354c0af92787a350cc6f9c61539d6009355812ac375ea09e"
+dependencies = [
+ "bevy",
+ "crossbeam-channel",
+ "image",
+ "variadics_please",
+]
+
+[[package]]
 name = "bevy_color"
 version = "0.16.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1490,6 +1502,7 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
+ "bevy_capture",
  "chrono",
  "rand 0.9.1",
 ]

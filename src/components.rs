@@ -95,3 +95,7 @@ pub struct ActiveMover;
 
 #[derive(Component, Clone)]
 pub struct Photosynthesis;
+
+/// DEBUG
+#[derive(Component)]
+pub struct DEBUGGER;

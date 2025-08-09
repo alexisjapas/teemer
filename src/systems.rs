@@ -1,8 +1,9 @@
 use avian2d::prelude::*;
 use bevy::{
     app::AppExit,
+    diagnostic::FrameCount,
     prelude::*,
-    render::view::screenshot::{Capturing, Screenshot, save_to_disk},
+    render::view::screenshot::{save_to_disk, Capturing, Screenshot},
 };
 
 use crate::components::*;
@@ -279,4 +280,14 @@ pub fn no_capture_in_progress(capturing: Query<(), With<Capturing>>) -> bool {
 pub fn manual_physics_step(mut physics_time: ResMut<Time<Physics>>) {
     println!("Physics step advancing.");
     physics_time.advance_by(std::time::Duration::from_secs_f32(FIXED_TIME_STEP));
+}
+
+/// DEBUG
+pub fn update_debugger(
+    frame_count: Res<FrameCount>,
+    mut debugger_query: Query<&mut Text, With<DEBUGGER>>,
+) {
+    if let Ok(mut text) = debugger_query.single_mut() {
+        text.0 = format!("FRAME N°{}", frame_count.0);
+    }
 }

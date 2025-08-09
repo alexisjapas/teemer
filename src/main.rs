@@ -1,5 +1,5 @@
 use avian2d::prelude::*;
-use bevy::prelude::*;
+use bevy::{diagnostic::FrameCount, prelude::*};
 use chrono::{DateTime, Utc};
 use rand::random;
 use std::fs;
@@ -66,6 +66,12 @@ fn main() {
         );
     }
 
+    // Debug
+    if DEBUG {
+        app.init_resource::<FrameCount>()
+            .add_systems(Update, update_debugger);
+    }
+
     // Run
     app.run();
 }
@@ -99,6 +105,11 @@ fn setup(mut commands: Commands) {
 
     // Texts
     spawn_hud(&mut commands);
+
+    // Debugger
+    if DEBUG {
+        spawn_debugger(&mut commands);
+    }
 }
 
 /// Simulation
@@ -234,7 +245,7 @@ fn spawn_entities(commands: &mut Commands) {
     // Prey
     for _i in 0..NB_PREY {
         let rand_color = random::<f32>().min(0.1).max(0.0);
-        let rand_speed_factor = random::<f32>().max(0.2);
+        let rand_speed_factor = random::<f32>().max(0.3);
         commands.spawn((
             entity_bundle.clone(),
             Collider::rectangle(PREY_SIZE, PREY_SIZE),
@@ -254,7 +265,7 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
             )),
             Species::Prey,
-            Prey::new(137.11),
+            Prey::new(111.1),
             Hunter::new(Species::Plant, 111.1),
             Speed::new(MAX_SPEED * rand_speed_factor),
             Energy::new(INITIAL_PREY_ENERGY, MAX_PREY_ENERGY),
@@ -445,5 +456,25 @@ fn spawn_hud(commands: &mut Commands) {
         ),
         // Avian's physics
         AngularVelocity(0.1),
+    ));
+}
+
+/// DEBUG
+fn spawn_debugger(commands: &mut Commands) {
+    commands.spawn((
+        Text::new(format!("FRAME N°0")),
+        TextLayout::new(JustifyText::Right, LineBreak::AnyCharacter),
+        TextFont {
+            font_size: DEBUG_FONT_SIZE,
+            ..default()
+        },
+        TextColor(Color::WHITE),
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(DEBUG_POS_TOP),
+            left: Val::Px(DEBUG_POS_LEFT),
+            ..default()
+        },
+        DEBUGGER,
     ));
 }
