@@ -1,10 +1,6 @@
 use avian2d::prelude::*;
-use bevy::{
-    app::AppExit,
-    diagnostic::FrameCount,
-    prelude::*,
-    render::view::screenshot::{save_to_disk, Capturing, Screenshot},
-};
+use bevy::{app::AppExit, diagnostic::FrameCount, prelude::*, render::view::screenshot::Capturing};
+use bevy_capture::{encoder::frames, Capture};
 
 use crate::components::*;
 use crate::config::*;
@@ -219,8 +215,8 @@ pub fn death(mut commands: Commands, entities: Query<(Entity, &Energy), With<Spe
 
 /// HUD
 pub fn update_text(
-    species_query: Query<&Species, Without<Text>>,
-    mut text_query: Query<(&mut Text, &Species), With<Text>>,
+    species_query: Query<&Species, Without<Text2d>>,
+    mut text_query: Query<(&mut Text2d, &Species), With<Text2d>>,
 ) {
     let predators_count = species_query
         .iter()
@@ -237,31 +233,30 @@ pub fn update_text(
 
     for (mut text, species) in text_query.iter_mut() {
         match species {
-            Species::Predator => text.0 = format!("Predators: {}", predators_count),
-            Species::Prey => text.0 = format!("Prey: {}", prey_count),
-            Species::Plant => text.0 = format!("Plants: {}", plants_count),
+            Species::Predator => **text = format!("Predators: {}", predators_count),
+            Species::Prey => **text = format!("Prey: {}", prey_count),
+            Species::Plant => **text = format!("Plants: {}", plants_count),
         }
     }
 }
 
 /// Capture
-pub fn take_frame_screenshot(
-    mut commands: Commands,
+pub fn capture_frame(
+    mut app_exit: EventWriter<AppExit>,
+    mut capture: Query<&mut Capture>,
     mut frame_counter: Local<u32>,
-    mut exit: EventWriter<AppExit>,
     frames_dir: Res<FramesDir>,
 ) {
-    if *frame_counter >= MAX_FRAMES_TO_CAPTURE {
-        println!("Generation done. Exiting.");
-        exit.write(AppExit::Success);
-        return;
+    let mut capture = capture.single_mut().unwrap();
+    if !capture.is_capturing() {
+        capture.start(frames::FramesEncoder::new(format!("{}", frames_dir.0)));
     }
 
-    let path = format!("{}/frame_{:04}.png", frames_dir.0, *frame_counter);
     *frame_counter += 1;
-    commands
-        .spawn(Screenshot::primary_window())
-        .observe(save_to_disk(path));
+    println!("{}", *frame_counter);
+    if *frame_counter >= MAX_FRAMES_TO_CAPTURE {
+        app_exit.write(AppExit::Success);
+    }
 }
 
 pub fn preview_frame_counter(mut frame_counter: Local<u32>, mut exit: EventWriter<AppExit>) {
@@ -285,9 +280,9 @@ pub fn manual_physics_step(mut physics_time: ResMut<Time<Physics>>) {
 /// DEBUG
 pub fn update_debugger(
     frame_count: Res<FrameCount>,
-    mut debugger_query: Query<&mut Text, With<DEBUGGER>>,
+    mut debugger_query: Query<&mut Text2d, With<DEBUGGER>>,
 ) {
     if let Ok(mut text) = debugger_query.single_mut() {
-        text.0 = format!("FRAME N°{}", frame_count.0);
+        **text = format!("FRAME N°{}", frame_count.0);
     }
 }

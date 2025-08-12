@@ -1,5 +1,9 @@
 use avian2d::prelude::*;
-use bevy::{diagnostic::FrameCount, prelude::*};
+use bevy::{
+    app::ScheduleRunnerPlugin, diagnostic::FrameCount, prelude::*, render::RenderPlugin,
+    winit::WinitPlugin,
+};
+use bevy_capture::{CameraTargetHeadless, CaptureBundle};
 use chrono::{DateTime, Utc};
 use rand::random;
 use std::fs;
@@ -18,9 +22,32 @@ use systems::*;
 fn main() {
     let mut app = App::new();
 
-    // Minimal configuration
-    app.add_plugins((
-        DefaultPlugins.set(WindowPlugin {
+    // Simulation
+    app.add_plugins((PhysicsPlugins::default(),))
+        .add_systems(Startup, setup)
+        .add_systems(
+            Update,
+            (
+                plant_regeneration_system,
+                assign_targets,
+                predator_movement,
+                prey_movement,
+                movement_energy,
+                collision_kill_system,
+                death,
+                update_text,
+            )
+                .chain(),
+        )
+        // Avian's physics
+        .insert_resource(Gravity(Vec2::ZERO))
+        // Miscellaneous
+        .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)));
+
+    // Preview vs generation
+    if PREVIEW_MODE {
+        println!("Preview mode: window + no capture.");
+        app.add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 resolution: (WINDOW_WIDTH, WINDOW_HEIGHT).into(),
                 title: "TeemLabs".into(),
@@ -28,39 +55,27 @@ fn main() {
                 ..default()
             }),
             ..default()
-        }),
-        PhysicsPlugins::default(),
-    ))
-    .add_systems(Startup, setup)
-    .add_systems(
-        Update,
-        (
-            plant_regeneration_system,
-            assign_targets,
-            predator_movement,
-            prey_movement,
-            movement_energy,
-            collision_kill_system,
-            death,
-            update_text,
-        )
-            .chain(),
-    )
-    // Avian's physics
-    .insert_resource(Gravity(Vec2::ZERO))
-    // Miscellaneous
-    .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)));
-
-    // Specific configuration
-    if PREVIEW_MODE {
-        println!("Preview mode activated. Real-time rendering & no frames capture.");
-        app.add_systems(Update, preview_frame_counter)
-            .insert_resource(Time::<Fixed>::from_seconds(FIXED_TIME_STEP as f64));
+        }))
+        .add_systems(Update, preview_frame_counter)
+        .insert_resource(Time::<Fixed>::from_seconds(FIXED_TIME_STEP as f64));
     } else {
-        println!("Generation mode activated. Longer rendering time & frames capture.");
-        app.add_systems(
+        println!("Generation mode: headless + capture.");
+        app.add_plugins((
+            DefaultPlugins
+                .build()
+                .disable::<WinitPlugin>()
+                .set(RenderPlugin {
+                    synchronous_pipeline_compilation: true,
+                    ..default()
+                }),
+            ScheduleRunnerPlugin {
+                run_mode: bevy::app::RunMode::Loop { wait: None },
+            },
+            bevy_capture::CapturePlugin,
+        ))
+        .add_systems(
             Update,
-            (manual_physics_step, take_frame_screenshot)
+            (manual_physics_step, capture_frame)
                 .run_if(no_capture_in_progress)
                 .chain(),
         );
@@ -77,9 +92,12 @@ fn main() {
 }
 
 /// Setup
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     // Create outputs directories
-    if !PREVIEW_MODE {
+    if PREVIEW_MODE {
+        // Camera
+        commands.spawn(Camera2d::default());
+    } else {
         // Get and format date
         let now: DateTime<Utc> = Utc::now();
         let str_date = now.format("sim_%Y-%m-%d-%H-%M-%SZ").to_string();
@@ -92,10 +110,18 @@ fn setup(mut commands: Commands) {
 
         // Insert as a resource
         commands.insert_resource(FramesDir(frames_dir));
-    }
 
-    // Camera
-    commands.spawn(Camera2d::default());
+        // Headless camera
+        commands.spawn((
+            Camera2d,
+            Camera::default().target_headless(
+                WINDOW_WIDTH as u32,
+                WINDOW_HEIGHT as u32,
+                &mut images,
+            ),
+            CaptureBundle::default(),
+        ));
+    }
 
     // Walls
     generate_world(&mut commands);
@@ -304,42 +330,36 @@ fn spawn_entities(commands: &mut Commands) {
 
 /// HUD
 fn spawn_hud(commands: &mut Commands) {
-    let hud_left_abs = WINDOW_WIDTH * 0.15;
+    let half_h = WINDOW_HEIGHT / 2.0;
+    let middle_wall_h = -half_h + WALLS_THICKNESS / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH);
+    let text_z = 1.0; // Ensure text is above other sprites
 
     // Predators
-    let predators_top_abs =
-        WINDOW_WIDTH + hud_left_abs / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH) * 0.0 / 4.0;
+    let predators_y = middle_wall_h - 150.0; // Below middle wall
     commands.spawn((
-        Text::new(format!("Predators: {}", NB_PREDATORS)),
-        TextLayout::new_with_justify(JustifyText::Left),
+        Text2d::new(format!("Predators: {}", NB_PREDATORS)),
         TextFont {
             font_size: TITLE_FONT_SIZE,
             ..default()
         },
         TextColor(Color::WHITE),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(predators_top_abs),
-            left: Val::Px(hud_left_abs),
-            ..default()
-        },
+        Transform::from_xyz(0.0, predators_y, text_z),
+        TextLayout::new_with_justify(JustifyText::Center),
         Species::Predator,
     ));
+
     commands.spawn((
-        Text::new("Predators have no fear. They hunt prey until\nthere's nothing left to eat."),
-        TextLayout::new_with_justify(JustifyText::Left),
+        Text2d::new("Predators have no fear. They hunt prey until\nthere's nothing left to eat."),
         TextFont {
             font_size: TEXT_FONT_SIZE,
             ..default()
         },
         TextColor(Color::WHITE),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(predators_top_abs + TITLE_FONT_SIZE * 2.0),
-            left: Val::Px(hud_left_abs + 10.0),
-            ..default()
-        },
+        Transform::from_xyz(0.0, predators_y - TITLE_FONT_SIZE * 2.0, text_z),
+        TextLayout::new_with_justify(JustifyText::Center),
     ));
+
+    // Predator sprite
     commands.spawn((
         Sprite {
             color: Color::linear_rgb(1.0, 0.0, 0.0),
@@ -347,51 +367,38 @@ fn spawn_hud(commands: &mut Commands) {
             ..default()
         },
         RigidBody::Kinematic,
-        Transform::from_xyz(
-            -WINDOW_WIDTH / 2.0 + hud_left_abs / 2.0,
-            (WINDOW_HEIGHT / 2.0) - predators_top_abs - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
-            0.0,
-        ),
-        // Avian's physics
-        AngularVelocity(0.3),
+        Transform::from_xyz(0.0, predators_y + TITLE_FONT_SIZE * 2.0, 0.0),
+        AngularVelocity(0.2),
     ));
 
     // Prey
-    let prey_top_abs =
-        WINDOW_WIDTH + hud_left_abs / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH) * 1.0 / 4.0;
+    let prey_y = predators_y - 250.0;
     commands.spawn((
-        Text::new(format!("Prey: {}", NB_PREY)),
-        TextLayout::new_with_justify(JustifyText::Left),
+        Text2d::new(format!("Prey: {}", NB_PREY)),
         TextFont {
             font_size: TITLE_FONT_SIZE,
             ..default()
         },
         TextColor(Color::WHITE),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(prey_top_abs),
-            left: Val::Px(hud_left_abs),
-            ..default()
-        },
+        Transform::from_xyz(0.0, prey_y, text_z),
+        TextLayout::new_with_justify(JustifyText::Center),
         Species::Prey,
     ));
+
     commands.spawn((
-        Text::new(
-            "Prey are constantly fleeing from predators.\nWhen they get a break, they eat plants.",
+        Text2d::new(
+            "Prey are constantly fleeing from predators. When they\nget a break, they eat plants.",
         ),
-        TextLayout::new_with_justify(JustifyText::Left),
         TextFont {
             font_size: TEXT_FONT_SIZE,
             ..default()
         },
         TextColor(Color::WHITE),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(prey_top_abs + TITLE_FONT_SIZE * 2.0),
-            left: Val::Px(hud_left_abs + 10.0),
-            ..default()
-        },
+        Transform::from_xyz(0.0, prey_y - TITLE_FONT_SIZE * 2.0, text_z),
+        TextLayout::new_with_justify(JustifyText::Center),
     ));
+
+    // Prey sprite
     commands.spawn((
         Sprite {
             color: Color::linear_rgb(0.0, 0.0, 1.0),
@@ -399,49 +406,36 @@ fn spawn_hud(commands: &mut Commands) {
             ..default()
         },
         RigidBody::Kinematic,
-        Transform::from_xyz(
-            -WINDOW_WIDTH / 2.0 + hud_left_abs / 2.0,
-            (WINDOW_HEIGHT / 2.0) - prey_top_abs - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
-            0.0,
-        ),
-        // Avian's physics
-        AngularVelocity(0.2),
+        Transform::from_xyz(0.0, prey_y + TITLE_FONT_SIZE * 2.0, 0.0),
+        AngularVelocity(0.1),
     ));
 
     // Plants
-    let plants_top_abs =
-        WINDOW_WIDTH + hud_left_abs / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH) * 2.0 / 4.0;
+    let plants_y = prey_y - 250.0;
     commands.spawn((
-        Text::new(format!("Plants: {}", NB_PLANTS)),
-        TextLayout::new_with_justify(JustifyText::Left),
+        Text2d::new(format!("Plants: {}", NB_PLANTS)),
         TextFont {
             font_size: TITLE_FONT_SIZE,
             ..default()
         },
         TextColor(Color::WHITE),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(plants_top_abs),
-            left: Val::Px(hud_left_abs),
-            ..default()
-        },
+        Transform::from_xyz(0.0, plants_y, text_z),
+        TextLayout::new_with_justify(JustifyText::Center),
         Species::Plant,
     ));
+
     commands.spawn((
-        Text::new("Plants have no abilities. They are eaten by prey\n(so aren't they also..?)."),
-        TextLayout::new_with_justify(JustifyText::Left),
+        Text2d::new("Plants have no abilities. They are eaten\nby prey (so aren't they also..?)."),
         TextFont {
             font_size: TEXT_FONT_SIZE,
             ..default()
         },
         TextColor(Color::WHITE),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(plants_top_abs + TITLE_FONT_SIZE * 2.0),
-            left: Val::Px(hud_left_abs + 10.0),
-            ..default()
-        },
+        Transform::from_xyz(0.0, plants_y - TITLE_FONT_SIZE * 2.0, text_z),
+        TextLayout::new_with_justify(JustifyText::Center),
     ));
+
+    // Plants sprite
     commands.spawn((
         Sprite {
             color: Color::linear_rgb(0.0, 1.0, 0.0),
@@ -449,32 +443,26 @@ fn spawn_hud(commands: &mut Commands) {
             ..default()
         },
         RigidBody::Kinematic,
-        Transform::from_xyz(
-            -WINDOW_WIDTH / 2.0 + hud_left_abs / 2.0,
-            (WINDOW_HEIGHT / 2.0) - plants_top_abs - WALLS_THICKNESS - TITLE_FONT_SIZE / 2.0,
-            0.0,
-        ),
-        // Avian's physics
-        AngularVelocity(0.1),
+        Transform::from_xyz(0.0, plants_y + TITLE_FONT_SIZE * 2.0, 0.0),
+        AngularVelocity(0.05),
     ));
 }
 
 /// DEBUG
 fn spawn_debugger(commands: &mut Commands) {
     commands.spawn((
-        Text::new(format!("FRAME N°0")),
-        TextLayout::new(JustifyText::Right, LineBreak::AnyCharacter),
+        Text2d::new("FRAME N°0"),
         TextFont {
             font_size: DEBUG_FONT_SIZE,
             ..default()
         },
         TextColor(Color::WHITE),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(DEBUG_POS_TOP),
-            left: Val::Px(DEBUG_POS_LEFT),
-            ..default()
-        },
+        Transform::from_xyz(
+            0.0,
+            -WINDOW_HEIGHT / 2.0 + DEBUG_FONT_SIZE + WALLS_THICKNESS + DEBUG_POS_PADDING,
+            1.0,
+        ),
+        TextLayout::new_with_justify(JustifyText::Center),
         DEBUGGER,
     ));
 }
