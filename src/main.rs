@@ -5,7 +5,7 @@ use bevy::{
 };
 use bevy_capture::{CameraTargetHeadless, CaptureBundle};
 use chrono::{DateTime, Utc};
-use rand::random;
+use rand::prelude::*;
 use std::fs;
 
 mod components;
@@ -217,6 +217,8 @@ fn generate_world(commands: &mut Commands) {
 }
 
 fn spawn_entities(commands: &mut Commands) {
+    let mut rng = rand::rng();
+
     let walls_paddings = WALLS_THICKNESS * 2.0 + 8.0;
     let half_w = WINDOW_WIDTH / 2.0;
     let half_h = WINDOW_HEIGHT / 2.0;
@@ -233,7 +235,7 @@ fn spawn_entities(commands: &mut Commands) {
 
     // Predators
     for _i in 0..NB_PREDATORS {
-        let rand_speed_factor = random::<f32>().max(0.1);
+        let rand_speed_factor = rng.random_range(0.7..1.0);
         commands.spawn((
             entity_bundle.clone(),
             Collider::rectangle(PREDATOR_SIZE, PREDATOR_SIZE),
@@ -249,8 +251,8 @@ fn spawn_entities(commands: &mut Commands) {
             ),
             // Avian's physics
             LinearVelocity(Vec2::new(
-                MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
-                MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
+                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
             Species::Predator,
             Hunter::new(Species::Prey, 222.2),
@@ -264,7 +266,7 @@ fn spawn_entities(commands: &mut Commands) {
 
     // Prey
     for _i in 0..NB_PREY {
-        let rand_speed_factor = random::<f32>().max(0.3);
+        let rand_speed_factor = rng.random_range(0.3..1.0);
         commands.spawn((
             entity_bundle.clone(),
             Collider::rectangle(PREY_SIZE, PREY_SIZE),
@@ -280,8 +282,8 @@ fn spawn_entities(commands: &mut Commands) {
             ),
             // Avian's physics
             LinearVelocity(Vec2::new(
-                MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
-                MAX_SPEED * (rand_speed_factor * 2.0 - 1.0),
+                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
             Species::Prey,
             Prey::new(111.1),
@@ -307,8 +309,8 @@ fn spawn_entities(commands: &mut Commands) {
             Transform::from_xyz(0.0, middle_wall_h + walls_paddings + PLANT_SIZE, 0.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
-                MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * (random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
             )),
             Species::Plant,
             Speed::new(0.0),
