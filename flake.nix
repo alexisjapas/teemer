@@ -61,7 +61,7 @@
             exit 1
           fi
           echo "Rendering video for $LATEST_SIM."
-          ffmpeg -framerate 30 -i outputs/$LATEST_SIM/frames/frame_%06d.png -c:v libx265 -crf 20 -preset slower -pix_fmt yuv420p outputs/$LATEST_SIM/video.mp4
+          ffmpeg -framerate 30 -i outputs/$LATEST_SIM/frames/frame_%06d.png -c:v hevc_nvenc -preset p7 -rc constqp -qp 16 -pix_fmt yuv420p outputs/$LATEST_SIM/video.mp4
           echo "Video generation done."
         '';
         dev-gen = pkgs.writeShellScriptBin "dev-gen" ''
