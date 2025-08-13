@@ -9,9 +9,9 @@ pub const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
 /// HUD
 pub const WALLS_THICKNESS: f32 = 8.0;
-pub const ENTITIES_SIZE: f32 = 44.0;
-pub const TITLE_FONT_SIZE: f32 = 24.0;
-pub const TEXT_FONT_SIZE: f32 = 20.0;
+pub const ENTITIES_SIZE: f32 = 64.0;
+pub const TITLE_FONT_SIZE: f32 = 32.0;
+pub const TEXT_FONT_SIZE: f32 = 28.0;
 
 /// Simulation parameters
 pub const MAX_SPEED: f32 = 21.0 * if PREVIEW_MODE { 3.0 } else { 1.0 };

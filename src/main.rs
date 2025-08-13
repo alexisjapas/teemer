@@ -73,12 +73,7 @@ fn main() {
             },
             bevy_capture::CapturePlugin,
         ))
-        .add_systems(
-            Update,
-            (manual_physics_step, capture_frame)
-                .run_if(no_capture_in_progress)
-                .chain(),
-        );
+        .add_systems(Update, (manual_physics_step, capture_frame));
     }
 
     // Debug
@@ -238,13 +233,12 @@ fn spawn_entities(commands: &mut Commands) {
 
     // Predators
     for _i in 0..NB_PREDATORS {
-        let rand_color = random::<f32>().min(0.1).max(0.0);
         let rand_speed_factor = random::<f32>().max(0.1);
         commands.spawn((
             entity_bundle.clone(),
             Collider::rectangle(PREDATOR_SIZE, PREDATOR_SIZE),
             Sprite {
-                color: Color::linear_rgb(1.0, rand_color, rand_color),
+                color: Color::linear_rgb(1.0, 0.05, 0.05),
                 custom_size: Some(Vec2::splat(PREDATOR_SIZE)),
                 ..default()
             },
@@ -270,13 +264,12 @@ fn spawn_entities(commands: &mut Commands) {
 
     // Prey
     for _i in 0..NB_PREY {
-        let rand_color = random::<f32>().min(0.1).max(0.0);
         let rand_speed_factor = random::<f32>().max(0.3);
         commands.spawn((
             entity_bundle.clone(),
             Collider::rectangle(PREY_SIZE, PREY_SIZE),
             Sprite {
-                color: Color::linear_rgb(rand_color, rand_color, 1.0),
+                color: Color::linear_rgb(0.05, 0.05, 1.0),
                 custom_size: Some(Vec2::splat(PREY_SIZE)),
                 ..default()
             },
@@ -303,12 +296,11 @@ fn spawn_entities(commands: &mut Commands) {
 
     // Plants
     for _i in 0..NB_PLANTS {
-        let rand_color = random::<f32>().min(0.1).max(0.0);
         commands.spawn((
             entity_bundle.clone(),
             Collider::rectangle(PLANT_SIZE, PLANT_SIZE),
             Sprite {
-                color: Color::linear_rgb(rand_color, 1.0, rand_color),
+                color: Color::linear_rgb(0.05, 1.0, 0.05),
                 custom_size: Some(Vec2::splat(PLANT_SIZE)),
                 ..default()
             },
@@ -349,7 +341,7 @@ fn spawn_hud(commands: &mut Commands) {
     ));
 
     commands.spawn((
-        Text2d::new("Predators have no fear. They hunt prey until\nthere's nothing left to eat."),
+        Text2d::new("Predators have no fear. They hunt prey\nuntil there's nothing left to eat."),
         TextFont {
             font_size: TEXT_FONT_SIZE,
             ..default()
@@ -362,7 +354,7 @@ fn spawn_hud(commands: &mut Commands) {
     // Predator sprite
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(1.0, 0.0, 0.0),
+            color: Color::linear_rgb(1.0, 0.05, 0.05),
             custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
             ..default()
         },
@@ -387,7 +379,7 @@ fn spawn_hud(commands: &mut Commands) {
 
     commands.spawn((
         Text2d::new(
-            "Prey are constantly fleeing from predators. When they\nget a break, they eat plants.",
+            "Prey are constantly fleeing from predators.\nWhen they get a break, they eat plants.",
         ),
         TextFont {
             font_size: TEXT_FONT_SIZE,
@@ -401,7 +393,7 @@ fn spawn_hud(commands: &mut Commands) {
     // Prey sprite
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.0, 0.0, 1.0),
+            color: Color::linear_rgb(0.05, 0.05, 1.0),
             custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
             ..default()
         },
@@ -438,7 +430,7 @@ fn spawn_hud(commands: &mut Commands) {
     // Plants sprite
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.0, 1.0, 0.0),
+            color: Color::linear_rgb(0.05, 1.0, 0.05),
             custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
             ..default()
         },

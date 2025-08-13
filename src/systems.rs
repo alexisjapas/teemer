@@ -1,5 +1,5 @@
 use avian2d::prelude::*;
-use bevy::{app::AppExit, diagnostic::FrameCount, prelude::*, render::view::screenshot::Capturing};
+use bevy::{app::AppExit, diagnostic::FrameCount, prelude::*};
 use bevy_capture::{encoder::frames, Capture};
 
 use crate::components::*;
@@ -266,10 +266,6 @@ pub fn preview_frame_counter(mut frame_counter: Local<u32>, mut exit: EventWrite
         return;
     }
     *frame_counter += 1;
-}
-
-pub fn no_capture_in_progress(capturing: Query<(), With<Capturing>>) -> bool {
-    capturing.is_empty()
 }
 
 pub fn manual_physics_step(mut physics_time: ResMut<Time<Physics>>) {
