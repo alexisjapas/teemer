@@ -3,7 +3,7 @@ pub const PREVIEW_MODE: bool = cfg!(feature = "preview");
 pub const WINDOW_WIDTH: f32 = 1080.0;
 pub const WINDOW_HEIGHT: f32 = 1920.0;
 pub const FRAMERATE: f32 = 30.0;
-pub const MAX_DURATION: f32 = 61.0 * if PREVIEW_MODE { 3.0 } else { 1.0 };
+pub const MAX_DURATION: f32 = 61.0;
 pub const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
 pub const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
@@ -14,22 +14,22 @@ pub const TITLE_FONT_SIZE: f32 = 32.0;
 pub const TEXT_FONT_SIZE: f32 = 28.0;
 
 /// Simulation parameters
-pub const MAX_SPEED: f32 = 21.0 * if PREVIEW_MODE { 3.0 } else { 1.0 };
+pub const MAX_SPEED: f32 = 42.0;
 pub const MOVEMENT_ENERGY_COST_FACTOR: f32 = 3.0E-5 * if PREVIEW_MODE { 1.0 } else { 3.0 };
 pub const ENERGY_TRANSFER_RATE: f32 = 1.0 / 2.0;
 
-pub const NB_PREDATORS: i32 = 5;
-pub const PREDATOR_SIZE: f32 = 21.0;
+pub const NB_PREDATORS: i32 = 2;
+pub const PREDATOR_SIZE: f32 = 17.0;
 pub const INITIAL_PREDATOR_ENERGY: f32 = 200.0;
 pub const MAX_PREDATOR_ENERGY: f32 = 300.0;
 
-pub const NB_PREY: i32 = 25;
+pub const NB_PREY: i32 = 99;
 pub const PREY_SIZE: f32 = 7.0;
 pub const INITIAL_PREY_ENERGY: f32 = 100.0;
 pub const MAX_PREY_ENERGY: f32 = 200.0;
 
-pub const NB_PLANTS: i32 = 125;
-pub const PLANT_SIZE: f32 = 3.0;
+pub const NB_PLANTS: i32 = 444;
+pub const PLANT_SIZE: f32 = 5.0;
 pub const INITIAL_PLANT_ENERGY: f32 = 10.0;
 pub const MAX_PLANT_ENERGY: f32 = 50.0;
 pub const PLANT_ENERGY_REGEN: f32 = 0.1;
