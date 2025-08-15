@@ -8,6 +8,13 @@ use crate::config::*;
 use crate::resources::*;
 
 /// Simulation
+pub fn idle_energy(mut entities: Query<&mut Energy, With<Species>>) {
+    let mut rng = rand::rng();
+    for mut energy in entities.iter_mut() {
+        energy.lose(IDLE_ENERGY_LOSS * FIXED_TIME_STEP * rng.random::<f32>());
+    }
+}
+
 pub fn plant_regeneration_system(mut plants: Query<&mut Energy, With<Photosynthesis>>) {
     let mut rng = rand::rng();
     for mut energy in plants.iter_mut() {

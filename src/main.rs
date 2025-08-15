@@ -28,6 +28,7 @@ fn main() {
         .add_systems(
             Update,
             (
+                idle_energy,
                 plant_regeneration_system,
                 assign_targets,
                 predator_movement,
@@ -141,6 +142,8 @@ fn generate_world(commands: &mut Commands) {
     let half_h = WINDOW_HEIGHT / 2.0;
     let middle_wall_h = -half_h + WALLS_THICKNESS / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH);
 
+    let walls_color = Color::linear_rgb(0.925, 0.49, 0.063);
+
     // Water
     commands.spawn((
         Sprite {
@@ -154,7 +157,7 @@ fn generate_world(commands: &mut Commands) {
     // Top wall
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.4, 0.1, 0.2),
+            color: walls_color.clone(),
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
@@ -167,7 +170,7 @@ fn generate_world(commands: &mut Commands) {
     // Middle wall
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.4, 0.1, 0.2),
+            color: walls_color.clone(),
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
@@ -180,7 +183,7 @@ fn generate_world(commands: &mut Commands) {
     // Bottom wall
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.4, 0.1, 0.2),
+            color: walls_color.clone(),
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
@@ -193,7 +196,7 @@ fn generate_world(commands: &mut Commands) {
     // Left wall
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.4, 0.1, 0.2),
+            color: walls_color.clone(),
             custom_size: Some(Vec2::new(WALLS_THICKNESS, WINDOW_HEIGHT)),
             ..default()
         },
@@ -206,7 +209,7 @@ fn generate_world(commands: &mut Commands) {
     // Right wall
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.4, 0.1, 0.2),
+            color: walls_color.clone(),
             custom_size: Some(Vec2::new(WALLS_THICKNESS, WINDOW_HEIGHT)),
             ..default()
         },
