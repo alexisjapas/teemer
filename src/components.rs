@@ -7,7 +7,7 @@ pub enum Species {
     Plant,
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Hunter {
     pub hunts: Species,
     pub detection_range: f32,
@@ -83,6 +83,18 @@ impl Size {
     }
 
     pub fn value(&self) -> f32 {
+        self.0
+    }
+}
+
+#[derive(Component, Clone)]
+pub struct EntityColor(Color);
+impl EntityColor {
+    pub fn new(r: f32, g: f32, b: f32) -> Self {
+        Self(Color::linear_rgb(r, g, b))
+    }
+
+    pub fn value(&self) -> Color {
         self.0
     }
 }

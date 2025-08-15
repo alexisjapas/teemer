@@ -1,6 +1,7 @@
 use avian2d::prelude::*;
 use bevy::{app::AppExit, diagnostic::FrameCount, prelude::*};
 use bevy_capture::{encoder::frames, Capture};
+use rand::prelude::*;
 
 use crate::components::*;
 use crate::config::*;
@@ -8,8 +9,9 @@ use crate::resources::*;
 
 /// Simulation
 pub fn plant_regeneration_system(mut plants: Query<&mut Energy, With<Photosynthesis>>) {
+    let mut rng = rand::rng();
     for mut energy in plants.iter_mut() {
-        energy.gain(PLANT_ENERGY_REGEN * FIXED_TIME_STEP);
+        energy.gain(PLANT_ENERGY_REGEN * FIXED_TIME_STEP * rng.random::<f32>());
     }
 }
 
@@ -209,6 +211,131 @@ pub fn death(mut commands: Commands, entities: Query<(Entity, &Energy), With<Spe
     for (entity, energy) in entities.iter() {
         if energy.value() <= 0.0 {
             commands.entity(entity).despawn();
+        }
+    }
+}
+
+pub fn reproduction(
+    mut commands: Commands,
+    mut entities: Query<
+        (
+            &Name,
+            &EntityColor,
+            &Species,
+            &mut Energy,
+            Option<&Hunter>,
+            Option<&Prey>,
+            Option<&Photosynthesis>,
+            &Speed,
+            &Size,
+            Option<&ActiveMover>,
+            &Transform,
+            &LinearVelocity,
+        ),
+        With<Species>,
+    >,
+) {
+    // Prepare children common attributes
+    let entity_bundle = (
+        RigidBody::Dynamic,
+        Restitution::new(0.2), // Bouncing restitution
+        Friction::new(0.2),
+        LockedAxes::ROTATION_LOCKED,
+        CollisionEventsEnabled,
+        Consumable,
+    );
+
+    // Get parents
+    let mut parents = Vec::new();
+    for (
+        name,
+        color,
+        species,
+        mut energy,
+        hunter,
+        prey,
+        photosynthesis,
+        speed,
+        size,
+        active_mover,
+        transform,
+        linear_velocity,
+    ) in entities.iter_mut()
+    {
+        if energy.value() >= 0.8 * energy.max {
+            // Lose energy (10%)
+            // then divide it by two so it is shared between the entity and its child
+            let energy_loss = energy.value() * 0.55;
+            energy.lose(energy_loss);
+
+            // Adds to parents
+            parents.push((
+                name.clone(),
+                color.clone(),
+                species.clone(),
+                energy.clone(),
+                hunter.map(|h| h.clone()),
+                prey.map(|p| p.clone()),
+                photosynthesis.map(|p| p.clone()),
+                speed.clone(),
+                size.clone(),
+                active_mover.map(|a| a.clone()),
+                *transform,
+                *linear_velocity,
+            ))
+        }
+    }
+
+    // Spawn children (perfect clones)
+    for (
+        name,
+        color,
+        species,
+        energy,
+        hunter,
+        prey,
+        photosynthesis,
+        speed,
+        size,
+        active_mover,
+        transform,
+        linear_velocity,
+    ) in parents
+    {
+        let speed_value = speed.value();
+        let size_value = size.value();
+        let color_value = color.value();
+        let mut child = commands.spawn((
+            entity_bundle.clone(),
+            name,
+            color,
+            species,
+            energy,
+            speed,
+            size,
+            transform,
+            LinearVelocity(Vec2::new(
+                (10.0 + speed_value) * (rand::random::<f32>() * 2.0 - 1.0),
+                (10.0 + speed_value) * (rand::random::<f32>() * 2.0 - 1.0),
+            )),
+            Collider::rectangle(size_value, size_value),
+            Sprite {
+                color: color_value,
+                custom_size: Some(Vec2::splat(size_value)),
+                ..default()
+            },
+        ));
+        if let Some(hunter_component) = hunter {
+            child.insert(hunter_component);
+        }
+        if let Some(prey_component) = prey {
+            child.insert(prey_component);
+        }
+        if let Some(photosynthesis_component) = photosynthesis {
+            child.insert(photosynthesis_component);
+        }
+        if let Some(active_mover_component) = active_mover {
+            child.insert(active_mover_component);
         }
     }
 }

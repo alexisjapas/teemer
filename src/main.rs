@@ -34,6 +34,7 @@ fn main() {
                 prey_movement,
                 movement_energy,
                 collision_kill_system,
+                reproduction,
                 death,
                 update_text,
             )
@@ -234,16 +235,19 @@ fn spawn_entities(commands: &mut Commands) {
     );
 
     // Predators
+    let predators_color = EntityColor::new(1.0, 0.05, 0.05);
     for _i in 0..NB_PREDATORS {
         let rand_speed_factor = rng.random_range(0.7..1.0);
         commands.spawn((
             entity_bundle.clone(),
-            Collider::rectangle(PREDATOR_SIZE, PREDATOR_SIZE),
-            Sprite {
-                color: Color::linear_rgb(1.0, 0.05, 0.05),
-                custom_size: Some(Vec2::splat(PREDATOR_SIZE)),
-                ..default()
-            },
+            Name::new("Predator"),
+            predators_color.clone(),
+            Species::Predator,
+            Energy::new(INITIAL_PREDATOR_ENERGY, MAX_PREDATOR_ENERGY),
+            Hunter::new(Species::Prey, 222.2),
+            Speed::new(MAX_SPEED * rand_speed_factor),
+            Size::new(PREDATOR_SIZE),
+            ActiveMover,
             Transform::from_xyz(
                 -half_w + walls_paddings + PREDATOR_SIZE,
                 half_h - walls_paddings - PREDATOR_SIZE,
@@ -254,24 +258,25 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Species::Predator,
-            Hunter::new(Species::Prey, 222.2),
-            Speed::new(MAX_SPEED * rand_speed_factor),
-            Energy::new(INITIAL_PREDATOR_ENERGY, MAX_PREDATOR_ENERGY),
-            Size::new(PREDATOR_SIZE),
-            Name::new("Predator"),
-            ActiveMover,
+            Collider::rectangle(PREDATOR_SIZE, PREDATOR_SIZE),
+            Sprite {
+                color: predators_color.value(),
+                custom_size: Some(Vec2::splat(PREDATOR_SIZE)),
+                ..default()
+            },
         ));
     }
 
     // Prey
+    let prey_color = EntityColor::new(0.05, 0.05, 1.0);
     for _i in 0..NB_PREY {
         let rand_speed_factor = rng.random_range(0.3..1.0);
         commands.spawn((
             entity_bundle.clone(),
+            prey_color.clone(),
             Collider::rectangle(PREY_SIZE, PREY_SIZE),
             Sprite {
-                color: Color::linear_rgb(0.05, 0.05, 1.0),
+                color: prey_color.value(),
                 custom_size: Some(Vec2::splat(PREY_SIZE)),
                 ..default()
             },
@@ -297,12 +302,14 @@ fn spawn_entities(commands: &mut Commands) {
     }
 
     // Plants
+    let plants_color = EntityColor::new(0.05, 1.0, 0.05);
     for _i in 0..NB_PLANTS {
         commands.spawn((
             entity_bundle.clone(),
+            plants_color.clone(),
             Collider::rectangle(PLANT_SIZE, PLANT_SIZE),
             Sprite {
-                color: Color::linear_rgb(0.05, 1.0, 0.05),
+                color: plants_color.value(),
                 custom_size: Some(Vec2::splat(PLANT_SIZE)),
                 ..default()
             },
