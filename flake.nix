@@ -64,7 +64,7 @@
           ffmpeg -framerate 30 -i outputs/$LATEST_SIM/frames/frame_%06d.png \
           -c:v h264_nvenc -preset p7 -rc vbr -b:v 8M -maxrate 8M -bufsize 16M \
           -pix_fmt yuv420p -movflags +faststart \
-          outputs/$LATEST_SIM/video.mp4
+          outputs/$LATEST_SIM/$LATEST_SIM.mp4
 
           echo "Video generation done."
         '';

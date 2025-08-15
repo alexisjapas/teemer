@@ -97,7 +97,7 @@ pub fn predator_movement(
 
                 // Apply steering force for smoother movements
                 let steering_force = desired_velocity - current_velocity;
-                let max_force = hunt_speed * 3.0;
+                let max_force = hunt_speed * HUNTING_REACTIVITY; // TODO set a per entity component
                 let steering_force = steering_force.clamp_length_max(max_force);
 
                 let new_velocity = current_velocity + steering_force * FIXED_TIME_STEP;
@@ -151,7 +151,7 @@ pub fn prey_movement(
             // Steering force for smoother movement
             let current_velocity = Vec2::new(velocity.x, velocity.y);
             let steering_force = desired_velocity - current_velocity;
-            let max_force = flee_speed * 5.0; // Prey can change direction quickly when hunted
+            let max_force = flee_speed * FLEEING_REACTIVITY; // Prey can change direction quickly when hunted
             let steering_force = steering_force.clamp_length_max(max_force);
 
             let new_velocity = current_velocity + steering_force * FIXED_TIME_STEP;

@@ -18,18 +18,20 @@ pub const MAX_SPEED: f32 = 64.0 * if PREVIEW_MODE { 2.0 } else { 1.0 };
 pub const MOVEMENT_ENERGY_COST_FACTOR: f32 = 3.0E-5 * if PREVIEW_MODE { 0.2 } else { 3.0 };
 pub const ENERGY_TRANSFER_RATE: f32 = 1.0 / 3.0;
 pub const IDLE_ENERGY_LOSS: f32 = 2.0;
+pub const HUNTING_REACTIVITY: f32 = 10.0;
+pub const FLEEING_REACTIVITY: f32 = 10.0;
 
-pub const NB_PREDATORS: i32 = 4;
-pub const PREDATOR_SIZE: f32 = 17.0;
-pub const INITIAL_PREDATOR_ENERGY: f32 = 220.0;
-pub const MAX_PREDATOR_ENERGY: f32 = 300.0;
+pub const NB_PREDATORS: i32 = 5;
+pub const PREDATOR_SIZE: f32 = 13.0;
+pub const INITIAL_PREDATOR_ENERGY: f32 = 300.0;
+pub const MAX_PREDATOR_ENERGY: f32 = 400.0;
 
-pub const NB_PREY: i32 = 21;
+pub const NB_PREY: i32 = 25;
 pub const PREY_SIZE: f32 = 7.0;
 pub const INITIAL_PREY_ENERGY: f32 = 150.0;
 pub const MAX_PREY_ENERGY: f32 = 200.0;
 
-pub const NB_PLANTS: i32 = 222;
+pub const NB_PLANTS: i32 = 125;
 pub const PLANT_SIZE: f32 = 3.0;
 pub const INITIAL_PLANT_ENERGY: f32 = 30.0;
 pub const MAX_PLANT_ENERGY: f32 = 50.0;
