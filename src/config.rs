@@ -21,21 +21,26 @@ pub const IDLE_ENERGY_LOSS: f32 = 2.0;
 pub const HUNTING_REACTIVITY: f32 = 10.0;
 pub const FLEEING_REACTIVITY: f32 = 10.0;
 
-pub const NB_PREDATORS: i32 = 5;
-pub const PREDATOR_SIZE: f32 = 13.0;
-pub const INITIAL_PREDATOR_ENERGY: f32 = 300.0;
+pub const NB_SUPER_PREDATORS: i32 = 2;
+pub const SUPER_PREDATOR_SIZE: f32 = 20.0;
+pub const MAX_SUPER_PREDATOR_ENERGY: f32 = 400.0;
+pub const INITIAL_SUPER_PREDATOR_ENERGY: f32 = 300.0;
+
+pub const NB_PREDATORS: i32 = 10;
+pub const PREDATOR_SIZE: f32 = 14.0;
 pub const MAX_PREDATOR_ENERGY: f32 = 400.0;
+pub const INITIAL_PREDATOR_ENERGY: f32 = 300.0;
 
-pub const NB_PREY: i32 = 25;
-pub const PREY_SIZE: f32 = 7.0;
-pub const INITIAL_PREY_ENERGY: f32 = 150.0;
+pub const NB_PREY: i32 = 60;
+pub const PREY_SIZE: f32 = 10.0;
 pub const MAX_PREY_ENERGY: f32 = 200.0;
+pub const INITIAL_PREY_ENERGY: f32 = 150.0;
 
-pub const NB_PLANTS: i32 = 125;
-pub const PLANT_SIZE: f32 = 3.0;
-pub const INITIAL_PLANT_ENERGY: f32 = 30.0;
-pub const MAX_PLANT_ENERGY: f32 = 50.0;
-pub const PLANT_ENERGY_REGEN: f32 = 5.0;
+pub const NB_PLANTS: i32 = 160;
+pub const PLANT_SIZE: f32 = 6.0;
+pub const MAX_PLANT_ENERGY: f32 = 80.0;
+pub const INITIAL_PLANT_ENERGY: f32 = 50.0;
+pub const PLANT_ENERGY_REGEN: f32 = 6.0;
 
 /// DEBUG
 pub const DEBUG: bool = true;

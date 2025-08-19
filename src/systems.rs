@@ -63,7 +63,7 @@ pub fn assign_targets(
             let mut closest_prey = None;
 
             for (prey_entity, prey_transform, prey_species) in potential_prey.iter() {
-                if predator.hunts == *prey_species {
+                if predator.hunts.contains(prey_species) {
                     let distance = predator_transform
                         .translation
                         .distance(prey_transform.translation);
@@ -124,7 +124,7 @@ pub fn prey_movement(
 
         for (predator_entity, predator_transform, hunter) in predators.iter() {
             // Check if predator predate
-            if hunter.hunts == *prey_species {
+            if hunter.hunts.contains(prey_species) {
                 let distance = prey_transform
                     .translation
                     .distance(predator_transform.translation);
@@ -183,7 +183,7 @@ pub fn collision_kill_system(
 
         // Check Case 1: Entity1 is the predator, Entity2 is the prey
         if let (Some(predator), Some(prey_species)) = (entity1_comps.0, entity2_comps.1) {
-            if predator.hunts == *prey_species {
+            if predator.hunts.contains(prey_species) {
                 // Get part of prey energy
                 if let Some(prey_energy) = entity2_comps.2.as_ref() {
                     let energy_gained = prey_energy.value() * ENERGY_TRANSFER_RATE;
@@ -199,7 +199,7 @@ pub fn collision_kill_system(
 
         // Check Case 2: Entity2 is the predator, Entity1 is the prey
         if let (Some(predator), Some(prey_species)) = (entity2_comps.0, entity1_comps.1) {
-            if predator.hunts == *prey_species {
+            if predator.hunts.contains(prey_species) {
                 // Get part of prey energy
                 if let Some(prey_energy) = entity1_comps.2.as_ref() {
                     let energy_gained = prey_energy.value() * ENERGY_TRANSFER_RATE;
@@ -352,6 +352,10 @@ pub fn update_text(
     species_query: Query<&Species, Without<Text2d>>,
     mut text_query: Query<(&mut Text2d, &Species), With<Text2d>>,
 ) {
+    let superpredators_count = species_query
+        .iter()
+        .filter(|species| **species == Species::SuperPredator)
+        .count();
     let predators_count = species_query
         .iter()
         .filter(|species| **species == Species::Predator)
@@ -367,6 +371,7 @@ pub fn update_text(
 
     for (mut text, species) in text_query.iter_mut() {
         match species {
+            Species::SuperPredator => **text = format!("Super Predators: {}", superpredators_count),
             Species::Predator => **text = format!("Predators: {}", predators_count),
             Species::Prey => **text = format!("Prey: {}", prey_count),
             Species::Plant => **text = format!("Plants: {}", plants_count),

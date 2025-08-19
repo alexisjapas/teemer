@@ -147,7 +147,7 @@ fn generate_world(commands: &mut Commands) {
     // Water
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.0196 / 7.0, 0.267 / 7.0, 0.369 / 7.0),
+            color: Color::linear_rgb(0.020, 0.043, 0.071),
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WINDOW_WIDTH)),
             ..default()
         },
@@ -237,8 +237,41 @@ fn spawn_entities(commands: &mut Commands) {
         Consumable,
     );
 
+    // Super-predators
+    let super_predators_color = EntityColor::new(0.608, 0.365, 0.898);
+    for _i in 0..NB_SUPER_PREDATORS {
+        let rand_speed_factor = rng.random_range(0.7..1.0);
+        commands.spawn((
+            entity_bundle.clone(),
+            Name::new("Super Predator"),
+            super_predators_color.clone(),
+            Species::SuperPredator,
+            Energy::new(INITIAL_SUPER_PREDATOR_ENERGY, MAX_SUPER_PREDATOR_ENERGY),
+            Hunter::new(vec![Species::Predator, Species::Prey], 500.0),
+            Speed::new(MAX_SPEED * rand_speed_factor),
+            Size::new(SUPER_PREDATOR_SIZE),
+            ActiveMover,
+            Transform::from_xyz(
+                half_w - walls_paddings - SUPER_PREDATOR_SIZE,
+                half_h - walls_paddings - SUPER_PREDATOR_SIZE,
+                0.0,
+            ),
+            // Avian's physics
+            LinearVelocity(Vec2::new(
+                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
+            )),
+            Collider::rectangle(SUPER_PREDATOR_SIZE, SUPER_PREDATOR_SIZE),
+            Sprite {
+                color: super_predators_color.value(),
+                custom_size: Some(Vec2::splat(SUPER_PREDATOR_SIZE)),
+                ..default()
+            },
+        ));
+    }
+
     // Predators
-    let predators_color = EntityColor::new(1.0, 0.05, 0.05);
+    let predators_color = EntityColor::new(0.976, 0.255, 0.267);
     for _i in 0..NB_PREDATORS {
         let rand_speed_factor = rng.random_range(0.7..1.0);
         commands.spawn((
@@ -247,7 +280,7 @@ fn spawn_entities(commands: &mut Commands) {
             predators_color.clone(),
             Species::Predator,
             Energy::new(INITIAL_PREDATOR_ENERGY, MAX_PREDATOR_ENERGY),
-            Hunter::new(Species::Prey, 400.0),
+            Hunter::new(vec![Species::Prey], 400.0),
             Speed::new(MAX_SPEED * rand_speed_factor),
             Size::new(PREDATOR_SIZE),
             ActiveMover,
@@ -271,7 +304,7 @@ fn spawn_entities(commands: &mut Commands) {
     }
 
     // Prey
-    let prey_color = EntityColor::new(0.05, 0.05, 1.0);
+    let prey_color = EntityColor::new(0.976, 0.780, 0.310);
     for _i in 0..NB_PREY {
         let rand_speed_factor = rng.random_range(0.3..1.0);
         commands.spawn((
@@ -283,11 +316,7 @@ fn spawn_entities(commands: &mut Commands) {
                 custom_size: Some(Vec2::splat(PREY_SIZE)),
                 ..default()
             },
-            Transform::from_xyz(
-                half_w - walls_paddings - PREY_SIZE,
-                half_h - walls_paddings - PREY_SIZE,
-                0.0,
-            ),
+            Transform::from_xyz(0.0, middle_wall_h + walls_paddings + PREY_SIZE, 0.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
@@ -295,7 +324,7 @@ fn spawn_entities(commands: &mut Commands) {
             )),
             Species::Prey,
             Prey::new(200.0),
-            Hunter::new(Species::Plant, 300.0),
+            Hunter::new(vec![Species::Plant], 300.0),
             Speed::new(MAX_SPEED * rand_speed_factor),
             Energy::new(INITIAL_PREY_ENERGY, MAX_PREY_ENERGY),
             Size::new(PREY_SIZE),
@@ -305,7 +334,7 @@ fn spawn_entities(commands: &mut Commands) {
     }
 
     // Plants
-    let plants_color = EntityColor::new(0.05, 1.0, 0.05);
+    let plants_color = EntityColor::new(0.290, 0.871, 0.502);
     for _i in 0..NB_PLANTS {
         commands.spawn((
             entity_bundle.clone(),
@@ -316,7 +345,7 @@ fn spawn_entities(commands: &mut Commands) {
                 custom_size: Some(Vec2::splat(PLANT_SIZE)),
                 ..default()
             },
-            Transform::from_xyz(0.0, middle_wall_h + walls_paddings + PLANT_SIZE, 0.0),
+            Transform::from_xyz(0.0, half_h / 2.0, 0.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
@@ -366,7 +395,7 @@ fn spawn_hud(commands: &mut Commands) {
     // Predator sprite
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(1.0, 0.05, 0.05),
+            color: Color::linear_rgb(0.976, 0.255, 0.267),
             custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
             ..default()
         },
@@ -405,7 +434,7 @@ fn spawn_hud(commands: &mut Commands) {
     // Prey sprite
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.05, 0.05, 1.0),
+            color: Color::linear_rgb(0.976, 0.780, 0.310),
             custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
             ..default()
         },
@@ -442,7 +471,7 @@ fn spawn_hud(commands: &mut Commands) {
     // Plants sprite
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.05, 1.0, 0.05),
+            color: Color::linear_rgb(0.290, 0.871, 0.502),
             custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
             ..default()
         },

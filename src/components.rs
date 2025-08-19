@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 #[derive(Component, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Species {
+    SuperPredator,
     Predator,
     Prey,
     Plant,
@@ -9,12 +10,12 @@ pub enum Species {
 
 #[derive(Component, Clone)]
 pub struct Hunter {
-    pub hunts: Species,
+    pub hunts: Vec<Species>,
     pub detection_range: f32,
     pub current_target: Option<Entity>,
 }
 impl Hunter {
-    pub fn new(hunts: Species, detection_range: f32) -> Self {
+    pub fn new(hunts: Vec<Species>, detection_range: f32) -> Self {
         Self {
             hunts,
             detection_range,
