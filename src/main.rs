@@ -280,6 +280,7 @@ fn spawn_entities(commands: &mut Commands) {
             predators_color.clone(),
             Species::Predator,
             Energy::new(INITIAL_PREDATOR_ENERGY, MAX_PREDATOR_ENERGY),
+            Prey::new(300.0),
             Hunter::new(vec![Species::Prey], 400.0),
             Speed::new(MAX_SPEED * rand_speed_factor),
             Size::new(PREDATOR_SIZE),
