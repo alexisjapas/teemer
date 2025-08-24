@@ -109,6 +109,43 @@ pub struct ActiveMover;
 #[derive(Component, Clone)]
 pub struct Photosynthesis;
 
+/// HUD
+#[derive(Component)]
+pub struct HudTitle;
+
+#[derive(Component)]
+pub struct HudSprite;
+
+#[derive(Component)]
+pub struct HudStats;
+
+#[derive(Component)]
+pub struct HudDescription;
+
+#[derive(Resource)]
+pub struct HudEntities {
+    pub title: Entity,
+    pub sprite: Entity,
+    pub details: Entity,
+    pub stats: Entity,
+    pub description: Entity,
+}
+
+#[derive(Resource)]
+pub struct HudBatches {
+    pub index: usize,
+    pub batches: Vec<HudBatch>,
+}
+
+#[derive(Clone)]
+pub struct HudBatch {
+    pub title: &'static str,
+    pub sprite_color: (f32, f32, f32),
+    pub details: &'static str,
+    pub stats: &'static str,
+    pub description: &'static str,
+}
+
 /// DEBUG
 #[derive(Component)]
 pub struct DEBUGGER;

@@ -347,38 +347,6 @@ pub fn reproduction(
     }
 }
 
-/// HUD
-pub fn update_text(
-    species_query: Query<&Species, Without<Text2d>>,
-    mut text_query: Query<(&mut Text2d, &Species), With<Text2d>>,
-) {
-    let superpredators_count = species_query
-        .iter()
-        .filter(|species| **species == Species::SuperPredator)
-        .count();
-    let predators_count = species_query
-        .iter()
-        .filter(|species| **species == Species::Predator)
-        .count();
-    let prey_count = species_query
-        .iter()
-        .filter(|species| **species == Species::Prey)
-        .count();
-    let plants_count = species_query
-        .iter()
-        .filter(|species| **species == Species::Plant)
-        .count();
-
-    for (mut text, species) in text_query.iter_mut() {
-        match species {
-            Species::SuperPredator => **text = format!("Super Predators: {}", superpredators_count),
-            Species::Predator => **text = format!("Predators: {}", predators_count),
-            Species::Prey => **text = format!("Prey: {}", prey_count),
-            Species::Plant => **text = format!("Plants: {}", plants_count),
-        }
-    }
-}
-
 /// Capture
 pub fn capture_frame(
     mut app_exit: EventWriter<AppExit>,
@@ -412,12 +380,47 @@ pub fn manual_physics_step(mut physics_time: ResMut<Time<Physics>>) {
     physics_time.advance_by(std::time::Duration::from_secs_f32(FIXED_TIME_STEP));
 }
 
+/// HUD
+pub fn update_hud(
+    frame_count: Res<FrameCount>,
+    mut hud_batches: ResMut<HudBatches>,
+    hud_entities: Res<HudEntities>,
+    mut text_query: Query<&mut Text2d>,
+    mut sprite_query: Query<&mut Sprite>,
+) {
+    if frame_count.0 % FRAMES_PER_UPDATE == 0 && frame_count.0 > 0 {
+        // Get next batch
+        hud_batches.index = (hud_batches.index + 1) % hud_batches.batches.len();
+        let batch = &hud_batches.batches[hud_batches.index];
+
+        // Update text fields
+        if let Ok(mut text) = text_query.get_mut(hud_entities.title) {
+            **text = batch.title.to_string();
+        }
+        if let Ok(mut text) = text_query.get_mut(hud_entities.details) {
+            **text = batch.details.to_string();
+        }
+        if let Ok(mut text) = text_query.get_mut(hud_entities.stats) {
+            **text = batch.stats.to_string();
+        }
+        if let Ok(mut text) = text_query.get_mut(hud_entities.description) {
+            **text = batch.description.to_string();
+        }
+
+        // Update sprite color
+        if let Ok(mut sprite) = sprite_query.get_mut(hud_entities.sprite) {
+            let (r, g, b) = batch.sprite_color;
+            sprite.color = Color::linear_rgb(r, g, b);
+        }
+    }
+}
+
 /// DEBUG
 pub fn update_debugger(
     frame_count: Res<FrameCount>,
     mut debugger_query: Query<&mut Text2d, With<DEBUGGER>>,
 ) {
     if let Ok(mut text) = debugger_query.single_mut() {
-        **text = format!("FRAME N°{}", frame_count.0);
+        **text = format!("VERSION: {} | FRAME N°{}", VERSION_NAME, frame_count.0);
     }
 }

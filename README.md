@@ -3,33 +3,45 @@
 ### 2025-08-23
 #### MH
 - [x] Predation: Enable multiple targets
-- [ ] Plants
-  - [ ] Rooted-in
-  - [ ] Pollination
+- [x] HUD
+  - [x] Version
+  - [x] Biome details
+  - [x] Rolling entities
+
 #### NTH
 - [ ] Enable more than 61s --> add stop conditions
 
 ### After
+- [ ] Plants
+  - [ ] Rooted-in
+    - [ ] Trees (direct collisions)
+    - [ ] Bushes (variable density)
+    - [ ] Grass (no collisions)
+  - [ ] Spores
+  - [ ] Pollination
 - [ ] Reproduction
   - [ ] Mutation
   - [ ] Sexual reproduction
   - [ ] Recycling
   - [ ] Dead bodies
   - [ ] Rejections
-  - [ ] Idle behaviour
-  - [ ] Decision making
-  - [ ] Hunting strategy
-  - [ ] Fleeing strategy
-  - [ ] Reproduction strategy
+  - [ ] Strategy
+- [ ] Idle behaviour
+- [ ] Decision making
+- [ ] Hunting strategy
+- [ ] Fleeing strategy
+- [ ] Add obstacles
 #### UI & Analysis
-- [ ] Monitor species total energy
+- [ ] Monitor species
+  - [ ] Energy
+  - [ ] Population
 #### Automation
 - [ ] Run multiple simulations at once
 #### Software
 - [ ] Sync preview/gen modes
+- [ ] Optimize capture
+### Lives
+- [ ] Spawn entities when 
+- [ ] Strategy changes through chat comments
 
-### Live Tiktok
-- [ ] Générer une entité par cadeau
-- [ ] Permettre changement de strat par commande message
-
-### Jeu Steam
+### Steam game

@@ -37,14 +37,18 @@ fn main() {
                 collision_kill_system,
                 reproduction,
                 death,
-                update_text,
+                update_hud,
             )
                 .chain(),
         )
         // Avian's physics
         .insert_resource(Gravity(Vec2::ZERO))
         // Miscellaneous
-        .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)));
+        .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
+        .insert_resource(HudBatches {
+            batches: BATCHES.to_vec(),
+            index: 0,
+        });
 
     // Preview vs generation
     if PREVIEW_MODE {
@@ -142,12 +146,12 @@ fn generate_world(commands: &mut Commands) {
     let half_h = WINDOW_HEIGHT / 2.0;
     let middle_wall_h = -half_h + WALLS_THICKNESS / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH);
 
-    let walls_color = Color::linear_rgb(0.925, 0.49, 0.063);
+    let walls_color = Color::linear_rgb(0.035, 0.322, 0.157);
 
     // Water
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.020, 0.043, 0.071),
+            color: Color::linear_rgb(0.35, 0.82, 0.75),
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WINDOW_WIDTH)),
             ..default()
         },
@@ -167,7 +171,7 @@ fn generate_world(commands: &mut Commands) {
         Restitution::new(wall_restitution),
     ));
 
-    // Middle wall
+    // Middle walls
     commands.spawn((
         Sprite {
             color: walls_color.clone(),
@@ -179,8 +183,30 @@ fn generate_world(commands: &mut Commands) {
         Transform::from_xyz(0.0, middle_wall_h, 0.0),
         Restitution::new(wall_restitution),
     ));
+    commands.spawn((
+        Sprite {
+            color: walls_color.clone(),
+            custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
+            ..default()
+        },
+        RigidBody::Static,
+        Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
+        Transform::from_xyz(0.0, middle_wall_h - 64.0, 0.0),
+        Restitution::new(wall_restitution),
+    ));
 
-    // Bottom wall
+    // Bottom walls
+    commands.spawn((
+        Sprite {
+            color: walls_color.clone(),
+            custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
+            ..default()
+        },
+        RigidBody::Static,
+        Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
+        Transform::from_xyz(0.0, -half_h + 54.0, 0.0),
+        Restitution::new(wall_restitution),
+    ));
     commands.spawn((
         Sprite {
             color: walls_color.clone(),
@@ -216,6 +242,38 @@ fn generate_world(commands: &mut Commands) {
         RigidBody::Static,
         Collider::rectangle(WALLS_THICKNESS, WINDOW_HEIGHT),
         Transform::from_xyz(half_w - WALLS_THICKNESS / 2.0, 0.0, 0.0),
+        Restitution::new(wall_restitution),
+    ));
+
+    // Sprite walls
+    commands.spawn((
+        Sprite {
+            color: walls_color.clone(),
+            custom_size: Some(Vec2::new(WALLS_THICKNESS, 154.0)),
+            ..default()
+        },
+        RigidBody::Static,
+        Transform::from_xyz(-77.0, -254.0, 0.0),
+        Restitution::new(wall_restitution),
+    ));
+    commands.spawn((
+        Sprite {
+            color: walls_color.clone(),
+            custom_size: Some(Vec2::new(WALLS_THICKNESS, 154.0)),
+            ..default()
+        },
+        RigidBody::Static,
+        Transform::from_xyz(77.0, -254.0, 0.0),
+        Restitution::new(wall_restitution),
+    ));
+    commands.spawn((
+        Sprite {
+            color: walls_color.clone(),
+            custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
+            ..default()
+        },
+        RigidBody::Static,
+        Transform::from_xyz(0.0, -250.0 - 154.0 / 2.0, 0.0),
         Restitution::new(wall_restitution),
     ));
 }
@@ -365,127 +423,102 @@ fn spawn_entities(commands: &mut Commands) {
 /// HUD
 fn spawn_hud(commands: &mut Commands) {
     let half_h = WINDOW_HEIGHT / 2.0;
-    let middle_wall_h = -half_h + WALLS_THICKNESS / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH);
+    let middle_wall_h = -half_h + (WINDOW_HEIGHT - WINDOW_WIDTH);
     let text_z = 1.0; // Ensure text is above other sprites
 
-    // Predators
-    let predators_y = middle_wall_h - 150.0; // Below middle wall
-    commands.spawn((
-        Text2d::new(format!("Predators: {}", NB_PREDATORS)),
-        TextFont {
-            font_size: TITLE_FONT_SIZE,
-            ..default()
-        },
-        TextColor(Color::WHITE),
-        Transform::from_xyz(0.0, predators_y, text_z),
-        TextLayout::new_with_justify(JustifyText::Center),
-        Species::Predator,
-    ));
+    // Title
+    let title_y = middle_wall_h - TITLE_FONT_SIZE + WALLS_THICKNESS / 2.0;
+    let title = commands
+        .spawn((
+            Text2d::new(TITLE),
+            TextFont {
+                font_size: TITLE_FONT_SIZE,
+                ..default()
+            },
+            TextColor(Color::WHITE),
+            Transform::from_xyz(0.0, title_y, text_z),
+            TextLayout::new_with_justify(JustifyText::Center),
+            HudTitle,
+        ))
+        .id();
 
-    commands.spawn((
-        Text2d::new("Predators have no fear. They hunt prey\nuntil there's nothing left to eat."),
-        TextFont {
-            font_size: TEXT_FONT_SIZE,
-            ..default()
-        },
-        TextColor(Color::WHITE),
-        Transform::from_xyz(0.0, predators_y - TITLE_FONT_SIZE * 2.0, text_z),
-        TextLayout::new_with_justify(JustifyText::Center),
-    ));
+    // Entity sprite
+    let sprite_y = middle_wall_h - WALLS_THICKNESS / 2.0 - TITLE_FONT_SIZE - 64.0; // Below middle wall
+    let sprite = commands
+        .spawn((
+            Sprite {
+                color: Color::linear_rgb(0.976, 0.255, 0.267),
+                custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
+                ..default()
+            },
+            RigidBody::Kinematic,
+            Transform::from_xyz(0.0, sprite_y - ENTITIES_SIZE / 2.0, 0.0),
+            AngularVelocity(0.2),
+            HudSprite,
+        ))
+        .id();
 
-    // Predator sprite
-    commands.spawn((
-        Sprite {
-            color: Color::linear_rgb(0.976, 0.255, 0.267),
-            custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
-            ..default()
-        },
-        RigidBody::Kinematic,
-        Transform::from_xyz(0.0, predators_y + TITLE_FONT_SIZE * 2.0, 0.0),
-        AngularVelocity(0.2),
-    ));
+    // Details
+    let details = commands
+        .spawn((
+            Text2d::new(format!("Predators: {}", NB_PREDATORS)),
+            TextFont {
+                font_size: SUBTITLE_FONT_SIZE,
+                ..default()
+            },
+            TextColor(Color::WHITE),
+            Transform::from_xyz(-314.0, sprite_y - ENTITIES_SIZE / 2.0, text_z),
+            TextLayout::new_with_justify(JustifyText::Right),
+            HudStats,
+        ))
+        .id();
 
-    // Prey
-    let prey_y = predators_y - 250.0;
-    commands.spawn((
-        Text2d::new(format!("Prey: {}", NB_PREY)),
-        TextFont {
-            font_size: TITLE_FONT_SIZE,
-            ..default()
-        },
-        TextColor(Color::WHITE),
-        Transform::from_xyz(0.0, prey_y, text_z),
-        TextLayout::new_with_justify(JustifyText::Center),
-        Species::Prey,
-    ));
+    // Statistics
+    let stats = commands
+        .spawn((
+            Text2d::new(format!("Predators: {}", NB_PREDATORS)),
+            TextFont {
+                font_size: SUBTITLE_FONT_SIZE,
+                ..default()
+            },
+            TextColor(Color::WHITE),
+            Transform::from_xyz(314.0, sprite_y - ENTITIES_SIZE / 2.0, text_z),
+            TextLayout::new_with_justify(JustifyText::Left),
+            HudStats,
+        ))
+        .id();
 
-    commands.spawn((
-        Text2d::new(
-            "Prey are constantly fleeing from predators.\nWhen they get a break, they eat plants.",
-        ),
-        TextFont {
-            font_size: TEXT_FONT_SIZE,
-            ..default()
-        },
-        TextColor(Color::WHITE),
-        Transform::from_xyz(0.0, prey_y - TITLE_FONT_SIZE * 2.0, text_z),
-        TextLayout::new_with_justify(JustifyText::Center),
-    ));
+    // Description
+    let description = commands
+        .spawn((
+            Text2d::new(
+                "Predators have no fear. They hunt prey\nuntil there's nothing left to eat.",
+            ),
+            TextFont {
+                font_size: TEXT_FONT_SIZE,
+                ..default()
+            },
+            TextColor(Color::WHITE),
+            Transform::from_xyz(0.0, (-250.0 - 154.0 / 2.0 - half_h + 54.0) / 2.0, text_z),
+            TextLayout::new_with_justify(JustifyText::Center),
+            HudDescription,
+        ))
+        .id();
 
-    // Prey sprite
-    commands.spawn((
-        Sprite {
-            color: Color::linear_rgb(0.976, 0.780, 0.310),
-            custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
-            ..default()
-        },
-        RigidBody::Kinematic,
-        Transform::from_xyz(0.0, prey_y + TITLE_FONT_SIZE * 2.0, 0.0),
-        AngularVelocity(0.1),
-    ));
-
-    // Plants
-    let plants_y = prey_y - 250.0;
-    commands.spawn((
-        Text2d::new(format!("Plants: {}", NB_PLANTS)),
-        TextFont {
-            font_size: TITLE_FONT_SIZE,
-            ..default()
-        },
-        TextColor(Color::WHITE),
-        Transform::from_xyz(0.0, plants_y, text_z),
-        TextLayout::new_with_justify(JustifyText::Center),
-        Species::Plant,
-    ));
-
-    commands.spawn((
-        Text2d::new("Plants have no abilities. They are eaten\nby prey (so aren't they also..?)."),
-        TextFont {
-            font_size: TEXT_FONT_SIZE,
-            ..default()
-        },
-        TextColor(Color::WHITE),
-        Transform::from_xyz(0.0, plants_y - TITLE_FONT_SIZE * 2.0, text_z),
-        TextLayout::new_with_justify(JustifyText::Center),
-    ));
-
-    // Plants sprite
-    commands.spawn((
-        Sprite {
-            color: Color::linear_rgb(0.290, 0.871, 0.502),
-            custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
-            ..default()
-        },
-        RigidBody::Kinematic,
-        Transform::from_xyz(0.0, plants_y + TITLE_FONT_SIZE * 2.0, 0.0),
-        AngularVelocity(0.05),
-    ));
+    // Resources
+    commands.insert_resource(HudEntities {
+        title,
+        sprite,
+        details,
+        stats,
+        description,
+    });
 }
 
 /// DEBUG
 fn spawn_debugger(commands: &mut Commands) {
     commands.spawn((
-        Text2d::new("FRAME N°0"),
+        Text2d::new(format!("VERION: {} | FRAME N°0", VERSION_NAME)),
         TextFont {
             font_size: DEBUG_FONT_SIZE,
             ..default()
