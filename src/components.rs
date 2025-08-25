@@ -2,10 +2,15 @@ use bevy::prelude::*;
 
 #[derive(Component, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Species {
-    SuperPredator,
-    Predator,
-    Prey,
-    Plant,
+    // Plants
+    Sahlalga,
+    Mirajun,
+    // Prey
+    Dunetide,
+    // Predators
+    Gharlox,
+    // Apex predators
+    Hakursa
 }
 
 #[derive(Component, Clone)]
@@ -107,7 +112,16 @@ pub struct Consumable;
 pub struct ActiveMover;
 
 #[derive(Component, Clone)]
-pub struct Photosynthesis;
+pub struct Photosynthesis(f32);
+impl Photosynthesis {
+    pub fn new(regen: f32) -> Self {
+        Self(regen)
+    }
+
+    pub fn value(&self) -> f32 {
+        self.0
+    }
+}
 
 /// HUD
 #[derive(Component)]

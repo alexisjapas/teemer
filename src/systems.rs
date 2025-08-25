@@ -15,10 +15,10 @@ pub fn idle_energy(mut entities: Query<&mut Energy, With<Species>>) {
     }
 }
 
-pub fn plant_regeneration_system(mut plants: Query<&mut Energy, With<Photosynthesis>>) {
+pub fn plant_regeneration_system(mut plants: Query<(&mut Energy, &Photosynthesis), With<Photosynthesis>>) {
     let mut rng = rand::rng();
-    for mut energy in plants.iter_mut() {
-        energy.gain(PLANT_ENERGY_REGEN * FIXED_TIME_STEP * rng.random::<f32>());
+    for (mut energy, photosynthesis) in plants.iter_mut() {
+        energy.gain(photosynthesis.value() * FIXED_TIME_STEP * rng.random::<f32>());
     }
 }
 
@@ -421,6 +421,6 @@ pub fn update_debugger(
     mut debugger_query: Query<&mut Text2d, With<DEBUGGER>>,
 ) {
     if let Ok(mut text) = debugger_query.single_mut() {
-        **text = format!("VERSION: {} | FRAME N°{}", VERSION_NAME, frame_count.0);
+        **text = format!("VERSION: V{} | LAB: L{} | RUN: R{} | FRAME F{}", VERSION_NAME, LAB_NAME, RUN_IT, frame_count.0);
     }
 }

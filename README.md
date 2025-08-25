@@ -43,5 +43,7 @@
 ### Lives
 - [ ] Spawn entities when 
 - [ ] Strategy changes through chat comments
+### Miscellaneous
+- Handle per entity rand std
 
 ### Steam game
