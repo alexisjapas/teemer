@@ -298,17 +298,17 @@ fn spawn_entities(commands: &mut Commands) {
     );
     
     // Plants
-    // Sahlalga
-    let (sahlalga_r, sahlalga_g, sahlalga_b) = SAHLALGA_COLOR;
-    let sahlalga_color = EntityColor::new(sahlalga_r, sahlalga_g, sahlalga_b);
-    for _i in 0..NB_SAHLALGA {
+    // Lodril
+    let (lodril_r, lodril_g, lodril_b) = LODRIL_COLOR;
+    let lodril_color = EntityColor::new(lodril_r, lodril_g, lodril_b);
+    for _i in 0..NB_LODRIL {
         commands.spawn((
             entity_bundle.clone(),
-            sahlalga_color.clone(),
-            Collider::rectangle(SAHLALGA_SIZE, SAHLALGA_SIZE),
+            lodril_color.clone(),
+            Collider::rectangle(LODRIL_SIZE, LODRIL_SIZE),
             Sprite {
-                color: sahlalga_color.value(),
-                custom_size: Some(Vec2::splat(SAHLALGA_SIZE)),
+                color: lodril_color.value(),
+                custom_size: Some(Vec2::splat(LODRIL_SIZE)),
                 ..default()
             },
             Transform::from_xyz(0.0, half_h / 2.0, 0.0),
@@ -317,94 +317,67 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Species::Sahlalga,
-            Speed::new(SAHLALGA_MAX_SPEED),
-            Energy::new(INITIAL_SAHLALGA_ENERGY, MAX_SAHLALGA_ENERGY),
-            Size::new(SAHLALGA_SIZE),
+            Species::Lodril,
+            Speed::new(LODRIL_MAX_SPEED),
+            Energy::new(INITIAL_LODRIL_ENERGY, MAX_LODRIL_ENERGY),
+            Size::new(LODRIL_SIZE),
             Name::new("Plant"),
-            Photosynthesis::new(SAHLALGA_ENERGY_REGEN),
-        ));
-    }
-    // Mirajun
-    let (mirajun_r, mirajun_g, mirajun_b) = MIRAJUN_COLOR;
-    let mirajun_color = EntityColor::new(mirajun_r, mirajun_g, mirajun_b);
-    for _i in 0..NB_MIRAJUN {
-        commands.spawn((
-            entity_bundle.clone(),
-            mirajun_color.clone(),
-            Collider::rectangle(MIRAJUN_SIZE, MIRAJUN_SIZE),
-            Sprite {
-                color: mirajun_color.value(),
-                custom_size: Some(Vec2::splat(MIRAJUN_SIZE)),
-                ..default()
-            },
-            Transform::from_xyz(0.0, half_h / 2.0, 0.0),
-            // Avian's physics
-            LinearVelocity(Vec2::new(
-                MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
-            )),
-            Species::Mirajun,
-            Speed::new(MIRAJUN_MAX_SPEED),
-            Energy::new(INITIAL_MIRAJUN_ENERGY, MAX_MIRAJUN_ENERGY),
-            Size::new(MIRAJUN_SIZE),
-            Name::new("Plant"),
-            Photosynthesis::new(MIRAJUN_ENERGY_REGEN),
+            Photosynthesis::new(LODRIL_ENERGY_REGEN),
         ));
     }
     
     // Prey
-    // Dunetide
-    let (dunetide_r, dunetide_g, dunetide_b) = DUNETIDE_COLOR;
-    let dunetide_color = EntityColor::new(dunetide_r, dunetide_g, dunetide_b);
-    for _i in 0..NB_DUNETIDE {
+    // Vanyr
+    let (vanyr_r, vanyr_g, vanyr_b) = VANYR_COLOR;
+    let vanyr_color = EntityColor::new(vanyr_r, vanyr_g, vanyr_b);
+    for _i in 0..NB_VANYR {
         let rand_speed_factor = rng.random_range(0.3..1.0);
         commands.spawn((
             entity_bundle.clone(),
-            dunetide_color.clone(),
-            Collider::rectangle(DUNETIDE_SIZE, DUNETIDE_SIZE),
+            vanyr_color.clone(),
+            Collider::rectangle(VANYR_SIZE, VANYR_SIZE),
             Sprite {
-                color: dunetide_color.value(),
-                custom_size: Some(Vec2::splat(DUNETIDE_SIZE)),
+                color: vanyr_color.value(),
+                custom_size: Some(Vec2::splat(VANYR_SIZE)),
                 ..default()
             },
-            Transform::from_xyz(0.0, middle_wall_h + walls_paddings + DUNETIDE_SIZE, 0.0),
+            Transform::from_xyz(0.0, middle_wall_h + walls_paddings + VANYR_SIZE, 0.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Species::Dunetide,
+            Species::Vanyr,
             Prey::new(200.0),
-            Hunter::new(vec![Species::Sahlalga, Species::Mirajun], 300.0),
-            Speed::new(DUNETIDE_MAX_SPEED * rand_speed_factor),
-            Energy::new(INITIAL_DUNETIDE_ENERGY, MAX_DUNETIDE_ENERGY),
-            Size::new(DUNETIDE_SIZE),
+            Hunter::new(vec![Species::Lodril], 300.0),
+            Speed::new(VANYR_MAX_SPEED * rand_speed_factor),
+            Energy::new(INITIAL_VANYR_ENERGY, MAX_VANYR_ENERGY),
+            Size::new(VANYR_SIZE),
             Name::new("Prey"),
             ActiveMover,
         ));
     }
     
     // Predators
-    // Gharlox
-    let (gharlox_r, gharlox_g, gharlox_b) = GHARLOX_COLOR;
-    let gharlox_color = EntityColor::new(gharlox_r, gharlox_g, gharlox_b);
-    for _i in 0..NB_GHARLOX {
+    // Thalvyrn
+    let (thalvyrn_r, thalvyrn_g, thalvyrn_b) = THALVYRN_COLOR;
+    let thalvyrn_color = EntityColor::new(thalvyrn_r, thalvyrn_g, thalvyrn_b);
+    for _i in 0..NB_THALVYRN {
         let rand_speed_factor = rng.random_range(0.7..1.0);
         commands.spawn((
             entity_bundle.clone(),
             Name::new("Predator"),
-            gharlox_color.clone(),
-            Species::Gharlox,
-            Energy::new(INITIAL_GHARLOX_ENERGY, MAX_GHARLOX_ENERGY),
+            thalvyrn_color.clone(),
+            Species::Thalvyrn,
+            Energy::new(INITIAL_THALVYRN_ENERGY, MAX_THALVYRN_ENERGY),
             Prey::new(300.0),
-            Hunter::new(vec![Species::Dunetide], 400.0),
-            Speed::new(GHARLOX_MAX_SPEED * rand_speed_factor),
-            Size::new(GHARLOX_SIZE),
+            Hunter::new(vec![Species::Vanyr], 400.0),
+            Speed::new(THALVYRN_MAX_SPEED * rand_speed_factor),
+            Size::new(THALVYRN_SIZE),
             ActiveMover,
             Transform::from_xyz(
-                -half_w + walls_paddings + GHARLOX_SIZE,
-                half_h - walls_paddings - GHARLOX_SIZE,
+                -half_w + walls_paddings + THALVYRN_SIZE,
+                half_h - walls_paddings - THALVYRN_SIZE,
                 0.0,
             ),
             // Avian's physics
@@ -412,34 +385,34 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Collider::rectangle(GHARLOX_SIZE, GHARLOX_SIZE),
+            Collider::rectangle(THALVYRN_SIZE, THALVYRN_SIZE),
             Sprite {
-                color: gharlox_color.value(),
-                custom_size: Some(Vec2::splat(GHARLOX_SIZE)),
+                color: thalvyrn_color.value(),
+                custom_size: Some(Vec2::splat(THALVYRN_SIZE)),
                 ..default()
             },
         ));
     }
 
     // Apex predators
-    // Hakursa
-    let (hakursa_r, hakursa_g, hakursa_b) = HAKURSA_COLOR;
-    let hakursa_color = EntityColor::new(hakursa_r, hakursa_g, hakursa_b);
-    for _i in 0..NB_HAKURSA {
+    // Myrrkul
+    let (myrrkul_r, myrrkul_g, myrrkul_b) = MYRRKUL_COLOR;
+    let myrrkul_color = EntityColor::new(myrrkul_r, myrrkul_g, myrrkul_b);
+    for _i in 0..NB_MYRRKUL {
         let rand_speed_factor = rng.random_range(0.7..1.0);
         commands.spawn((
             entity_bundle.clone(),
             Name::new("Super Predator"),
-            hakursa_color.clone(),
-            Species::Hakursa,
-            Energy::new(INITIAL_HAKURSA_ENERGY, MAX_HAKURSA_ENERGY),
-            Hunter::new(vec![Species::Dunetide, Species::Gharlox], 500.0),
-            Speed::new(HAKURSA_MAX_SPEED * rand_speed_factor),
-            Size::new(HAKURSA_SIZE),
+            myrrkul_color.clone(),
+            Species::Myrrkul,
+            Energy::new(INITIAL_MYRRKUL_ENERGY, MAX_MYRRKUL_ENERGY),
+            Hunter::new(vec![Species::Vanyr, Species::Thalvyrn], 500.0),
+            Speed::new(MYRRKUL_MAX_SPEED * rand_speed_factor),
+            Size::new(MYRRKUL_SIZE),
             ActiveMover,
             Transform::from_xyz(
-                half_w - walls_paddings - HAKURSA_SIZE,
-                half_h - walls_paddings - HAKURSA_SIZE,
+                half_w - walls_paddings - MYRRKUL_SIZE,
+                half_h - walls_paddings - MYRRKUL_SIZE,
                 0.0,
             ),
             // Avian's physics
@@ -447,10 +420,10 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Collider::rectangle(HAKURSA_SIZE, HAKURSA_SIZE),
+            Collider::rectangle(MYRRKUL_SIZE, MYRRKUL_SIZE),
             Sprite {
-                color: hakursa_color.value(),
-                custom_size: Some(Vec2::splat(HAKURSA_SIZE)),
+                color: myrrkul_color.value(),
+                custom_size: Some(Vec2::splat(MYRRKUL_SIZE)),
                 ..default()
             },
         ));

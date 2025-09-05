@@ -1,15 +1,12 @@
 # Teem Engine by TeemLabs
 ## Roadmap
-### 2025-08-23
+### 2025-09-29
 #### MH
-- [x] Predation: Enable multiple targets
-- [x] HUD
-  - [x] Version
-  - [x] Biome details
-  - [x] Rolling entities
+- [ ] Enable more than 61s --> add stop conditions
+- [ ] Import species from CSV
 
 #### NTH
-- [ ] Enable more than 61s --> add stop conditions
+- [ ] Per species reactivity
 
 ### After
 - [ ] Plants
@@ -40,10 +37,14 @@
 #### Software
 - [ ] Sync preview/gen modes
 - [ ] Optimize capture
-### Lives
-- [ ] Spawn entities when 
-- [ ] Strategy changes through chat comments
+
 ### Miscellaneous
 - Handle per entity rand std
+- Change font
 
 ### Steam game
+- [] Finish a beta version
+
+### Lives
+- [ ] Spawn entities
+- [ ] Strategy changes through chat comments

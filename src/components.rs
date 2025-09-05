@@ -5,12 +5,16 @@ pub enum Species {
     // Plants
     Sahlalga,
     Mirajun,
+    Lodril,
     // Prey
     Dunetide,
+    Vanyr,
     // Predators
     Gharlox,
+    Thalvyrn,
     // Apex predators
-    Hakursa
+    Hakursa,
+    Myrrkul
 }
 
 #[derive(Component, Clone)]
