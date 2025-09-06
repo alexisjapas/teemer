@@ -14,7 +14,14 @@ pub enum Species {
     Thalvyrn,
     // Apex predators
     Hakursa,
-    Myrrkul
+    Myrrkul,
+    // Ezerast - Salt marsh
+    Qyrsel,
+    Ozyrae,
+    Veytris,
+    Brisqal,
+    Chalyth,
+    Vorqualis
 }
 
 #[derive(Component, Clone)]

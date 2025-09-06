@@ -296,88 +296,81 @@ fn spawn_entities(commands: &mut Commands) {
         CollisionEventsEnabled,
         Consumable,
     );
-    
+
     // Plants
-    // Lodril
-    let (lodril_r, lodril_g, lodril_b) = LODRIL_COLOR;
-    let lodril_color = EntityColor::new(lodril_r, lodril_g, lodril_b);
-    for _i in 0..NB_LODRIL {
+    // Qyrsel
+    let (qyrsel_r, qyrsel_g, qyrsel_b) = QYRSEL_COLOR;
+    let qyrsel_color = EntityColor::new(qyrsel_r, qyrsel_g, qyrsel_b);
+    for _i in 0..NB_QYRSEL {
         commands.spawn((
             entity_bundle.clone(),
-            lodril_color.clone(),
-            Collider::rectangle(LODRIL_SIZE, LODRIL_SIZE),
+            qyrsel_color.clone(),
+            Collider::rectangle(QYRSEL_SIZE, QYRSEL_SIZE),
             Sprite {
-                color: lodril_color.value(),
-                custom_size: Some(Vec2::splat(LODRIL_SIZE)),
+                color: qyrsel_color.value(),
+                custom_size: Some(Vec2::splat(QYRSEL_SIZE)),
                 ..default()
             },
-            Transform::from_xyz(0.0, half_h / 2.0, 0.0),
+            Transform::from_xyz(0.0, middle_wall_h + half_w - 100.0, 0.0),
             // Avian's physics
             LinearVelocity(Vec2::new(
                 MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Species::Lodril,
-            Speed::new(LODRIL_MAX_SPEED),
-            Energy::new(INITIAL_LODRIL_ENERGY, MAX_LODRIL_ENERGY),
-            Size::new(LODRIL_SIZE),
+            Species::Qyrsel,
+            Speed::new(QYRSEL_MAX_SPEED),
+            Energy::new(INITIAL_QYRSEL_ENERGY, MAX_QYRSEL_ENERGY),
+            Size::new(QYRSEL_SIZE),
             Name::new("Plant"),
-            Photosynthesis::new(LODRIL_ENERGY_REGEN),
+            Photosynthesis::new(QYRSEL_ENERGY_REGEN),
         ));
     }
-    
+    // Ozyrae
+    let (ozyrae_r, ozyrae_g, ozyrae_b) = OZYRAE_COLOR;
+    let ozyrae_color = EntityColor::new(ozyrae_r, ozyrae_g, ozyrae_b);
+    for _i in 0..NB_OZYRAE {
+        commands.spawn((
+            entity_bundle.clone(),
+            ozyrae_color.clone(),
+            Collider::rectangle(OZYRAE_SIZE, OZYRAE_SIZE),
+            Sprite {
+                color: ozyrae_color.value(),
+                custom_size: Some(Vec2::splat(OZYRAE_SIZE)),
+                ..default()
+            },
+            Transform::from_xyz(0.0, middle_wall_h + half_w + 100.0, 0.0),
+            // Avian's physics
+            LinearVelocity(Vec2::new(
+                MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
+            )),
+            Species::Ozyrae,
+            Speed::new(OZYRAE_MAX_SPEED),
+            Energy::new(INITIAL_OZYRAE_ENERGY, MAX_OZYRAE_ENERGY),
+            Size::new(OZYRAE_SIZE),
+            Name::new("Plant"),
+            Photosynthesis::new(OZYRAE_ENERGY_REGEN),
+        ));
+    }
+
     // Prey
-    // Vanyr
-    let (vanyr_r, vanyr_g, vanyr_b) = VANYR_COLOR;
-    let vanyr_color = EntityColor::new(vanyr_r, vanyr_g, vanyr_b);
-    for _i in 0..NB_VANYR {
+    // Veytris
+    let (veytris_r, veytris_g, veytris_b) = VEYTRIS_COLOR;
+    let veytris_color = EntityColor::new(veytris_r, veytris_g, veytris_b);
+    for _i in 0..NB_VEYTRIS {
         let rand_speed_factor = rng.random_range(0.3..1.0);
         commands.spawn((
             entity_bundle.clone(),
-            vanyr_color.clone(),
-            Collider::rectangle(VANYR_SIZE, VANYR_SIZE),
+            veytris_color.clone(),
+            Collider::rectangle(VEYTRIS_SIZE, VEYTRIS_SIZE),
             Sprite {
-                color: vanyr_color.value(),
-                custom_size: Some(Vec2::splat(VANYR_SIZE)),
+                color: veytris_color.value(),
+                custom_size: Some(Vec2::splat(VEYTRIS_SIZE)),
                 ..default()
             },
-            Transform::from_xyz(0.0, middle_wall_h + walls_paddings + VANYR_SIZE, 0.0),
-            // Avian's physics
-            LinearVelocity(Vec2::new(
-                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
-            )),
-            Species::Vanyr,
-            Prey::new(200.0),
-            Hunter::new(vec![Species::Lodril], 300.0),
-            Speed::new(VANYR_MAX_SPEED * rand_speed_factor),
-            Energy::new(INITIAL_VANYR_ENERGY, MAX_VANYR_ENERGY),
-            Size::new(VANYR_SIZE),
-            Name::new("Prey"),
-            ActiveMover,
-        ));
-    }
-    
-    // Predators
-    // Thalvyrn
-    let (thalvyrn_r, thalvyrn_g, thalvyrn_b) = THALVYRN_COLOR;
-    let thalvyrn_color = EntityColor::new(thalvyrn_r, thalvyrn_g, thalvyrn_b);
-    for _i in 0..NB_THALVYRN {
-        let rand_speed_factor = rng.random_range(0.7..1.0);
-        commands.spawn((
-            entity_bundle.clone(),
-            Name::new("Predator"),
-            thalvyrn_color.clone(),
-            Species::Thalvyrn,
-            Energy::new(INITIAL_THALVYRN_ENERGY, MAX_THALVYRN_ENERGY),
-            Prey::new(300.0),
-            Hunter::new(vec![Species::Vanyr], 400.0),
-            Speed::new(THALVYRN_MAX_SPEED * rand_speed_factor),
-            Size::new(THALVYRN_SIZE),
-            ActiveMover,
             Transform::from_xyz(
-                -half_w + walls_paddings + THALVYRN_SIZE,
-                half_h - walls_paddings - THALVYRN_SIZE,
+                -half_w + walls_paddings + VEYTRIS_SIZE,
+                middle_wall_h + walls_paddings + VEYTRIS_SIZE,
                 0.0,
             ),
             // Avian's physics
@@ -385,34 +378,106 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Collider::rectangle(THALVYRN_SIZE, THALVYRN_SIZE),
+            Species::Veytris,
+            Prey::new(300.0),
+            Hunter::new(vec![Species::Qyrsel, Species::Ozyrae], 200.0),
+            Speed::new(VEYTRIS_MAX_SPEED * rand_speed_factor),
+            Energy::new(INITIAL_VEYTRIS_ENERGY, MAX_VEYTRIS_ENERGY),
+            Size::new(VEYTRIS_SIZE),
+            Name::new("Prey"),
+            ActiveMover,
+        ));
+    }
+    // Brisqal
+    let (brisqal_r, brisqal_g, brisqal_b) = BRISQAL_COLOR;
+    let brisqal_color = EntityColor::new(brisqal_r, brisqal_g, brisqal_b);
+    for _i in 0..NB_BRISQAL {
+        let rand_speed_factor = rng.random_range(0.3..1.0);
+        commands.spawn((
+            entity_bundle.clone(),
+            brisqal_color.clone(),
+            Collider::rectangle(BRISQAL_SIZE, BRISQAL_SIZE),
             Sprite {
-                color: thalvyrn_color.value(),
-                custom_size: Some(Vec2::splat(THALVYRN_SIZE)),
+                color: brisqal_color.value(),
+                custom_size: Some(Vec2::splat(BRISQAL_SIZE)),
+                ..default()
+            },
+            Transform::from_xyz(
+                half_w - walls_paddings - BRISQAL_SIZE,
+                half_h - walls_paddings - BRISQAL_SIZE,
+                0.0,
+            ),
+            // Avian's physics
+            LinearVelocity(Vec2::new(
+                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
+            )),
+            Species::Brisqal,
+            Prey::new(200.0),
+            Hunter::new(vec![Species::Qyrsel, Species::Ozyrae], 300.0),
+            Speed::new(BRISQAL_MAX_SPEED * rand_speed_factor),
+            Energy::new(INITIAL_BRISQAL_ENERGY, MAX_BRISQAL_ENERGY),
+            Size::new(BRISQAL_SIZE),
+            Name::new("Prey"),
+            ActiveMover,
+        ));
+    }
+
+    // Predators
+    // Chalyth
+    let (chalyth_r, chalyth_g, chalyth_b) = CHALYTH_COLOR;
+    let chalyth_color = EntityColor::new(chalyth_r, chalyth_g, chalyth_b);
+    for _i in 0..NB_CHALYTH {
+        let rand_speed_factor = rng.random_range(0.7..1.0);
+        commands.spawn((
+            entity_bundle.clone(),
+            Name::new("Predator"),
+            chalyth_color.clone(),
+            Species::Chalyth,
+            Energy::new(INITIAL_CHALYTH_ENERGY, MAX_CHALYTH_ENERGY),
+            Prey::new(350.0),
+            Hunter::new(vec![Species::Veytris, Species::Brisqal], 400.0),
+            Speed::new(CHALYTH_MAX_SPEED * rand_speed_factor),
+            Size::new(CHALYTH_SIZE),
+            ActiveMover,
+            Transform::from_xyz(
+                -half_w + walls_paddings + CHALYTH_SIZE,
+                half_h - walls_paddings - CHALYTH_SIZE,
+                0.0,
+            ),
+            // Avian's physics
+            LinearVelocity(Vec2::new(
+                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
+                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
+            )),
+            Collider::rectangle(CHALYTH_SIZE, CHALYTH_SIZE),
+            Sprite {
+                color: chalyth_color.value(),
+                custom_size: Some(Vec2::splat(CHALYTH_SIZE)),
                 ..default()
             },
         ));
     }
 
     // Apex predators
-    // Myrrkul
-    let (myrrkul_r, myrrkul_g, myrrkul_b) = MYRRKUL_COLOR;
-    let myrrkul_color = EntityColor::new(myrrkul_r, myrrkul_g, myrrkul_b);
-    for _i in 0..NB_MYRRKUL {
+    // Vorqualis
+    let (vorqualis_r, vorqualis_g, vorqualis_b) = VORQUALIS_COLOR;
+    let vorqualis_color = EntityColor::new(vorqualis_r, vorqualis_g, vorqualis_b);
+    for _i in 0..NB_VORQUALIS {
         let rand_speed_factor = rng.random_range(0.7..1.0);
         commands.spawn((
             entity_bundle.clone(),
             Name::new("Super Predator"),
-            myrrkul_color.clone(),
-            Species::Myrrkul,
-            Energy::new(INITIAL_MYRRKUL_ENERGY, MAX_MYRRKUL_ENERGY),
-            Hunter::new(vec![Species::Vanyr, Species::Thalvyrn], 500.0),
-            Speed::new(MYRRKUL_MAX_SPEED * rand_speed_factor),
-            Size::new(MYRRKUL_SIZE),
+            vorqualis_color.clone(),
+            Species::Vorqualis,
+            Energy::new(INITIAL_VORQUALIS_ENERGY, MAX_VORQUALIS_ENERGY),
+            Hunter::new(vec![Species::Brisqal, Species::Chalyth], 500.0),
+            Speed::new(VORQUALIS_MAX_SPEED * rand_speed_factor),
+            Size::new(VORQUALIS_SIZE),
             ActiveMover,
             Transform::from_xyz(
-                half_w - walls_paddings - MYRRKUL_SIZE,
-                half_h - walls_paddings - MYRRKUL_SIZE,
+                half_w - walls_paddings - VORQUALIS_SIZE,
+                middle_wall_h + walls_paddings + VORQUALIS_SIZE,
                 0.0,
             ),
             // Avian's physics
@@ -420,10 +485,10 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Collider::rectangle(MYRRKUL_SIZE, MYRRKUL_SIZE),
+            Collider::rectangle(VORQUALIS_SIZE, VORQUALIS_SIZE),
             Sprite {
-                color: myrrkul_color.value(),
-                custom_size: Some(Vec2::splat(MYRRKUL_SIZE)),
+                color: vorqualis_color.value(),
+                custom_size: Some(Vec2::splat(VORQUALIS_SIZE)),
                 ..default()
             },
         ));
@@ -527,7 +592,10 @@ fn spawn_hud(commands: &mut Commands) {
 /// DEBUG
 fn spawn_debugger(commands: &mut Commands) {
     commands.spawn((
-        Text2d::new(format!("VERSION: V{} | LAB: L{} | RUN: R{} | FRAME N°0", VERSION_NAME, LAB_NAME, RUN_IT)),
+        Text2d::new(format!(
+            "VERSION: V{} | LAB: L{} | RUN: R{} | FRAME N°0",
+            VERSION_NAME, LAB_NAME, RUN_IT
+        )),
         TextFont {
             font_size: DEBUG_FONT_SIZE,
             ..default()
