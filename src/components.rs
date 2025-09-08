@@ -21,7 +21,13 @@ pub enum Species {
     Veytris,
     Brisqal,
     Chalyth,
-    Vorqualis
+    Vorqualis,
+    // Irr'Umar - Swamp
+    Vyrmosa,
+    Qirval,
+    Lorynth,
+    Dravym,
+    Zyralith
 }
 
 #[derive(Component, Clone)]
