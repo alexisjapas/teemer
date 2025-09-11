@@ -298,17 +298,17 @@ fn spawn_entities(commands: &mut Commands) {
     );
 
     // Plants
-    // Vyrmosa
-    let (vyrmosa_r, vyrmosa_g, vyrmosa_b) = VYRMOSA_COLOR;
-    let vyrmosa_color = EntityColor::new(vyrmosa_r, vyrmosa_g, vyrmosa_b);
-    for _i in 0..NB_VYRMOSA {
+    // Lyrvane
+    let (lyrvane_r, lyrvane_g, lyrvane_b) = LYRVANE_COLOR;
+    let lyrvane_color = EntityColor::new(lyrvane_r, lyrvane_g, lyrvane_b);
+    for _i in 0..NB_LYRVANE {
         commands.spawn((
             entity_bundle.clone(),
-            vyrmosa_color.clone(),
-            Collider::rectangle(VYRMOSA_SIZE, VYRMOSA_SIZE),
+            lyrvane_color.clone(),
+            Collider::rectangle(LYRVANE_SIZE, LYRVANE_SIZE),
             Sprite {
-                color: vyrmosa_color.value(),
-                custom_size: Some(Vec2::splat(VYRMOSA_SIZE)),
+                color: lyrvane_color.value(),
+                custom_size: Some(Vec2::splat(LYRVANE_SIZE)),
                 ..default()
             },
             Transform::from_xyz(0.0, middle_wall_h + half_w, 0.0),
@@ -317,33 +317,33 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Species::Vyrmosa,
-            Speed::new(VYRMOSA_MAX_SPEED),
-            Energy::new(INITIAL_VYRMOSA_ENERGY, MAX_VYRMOSA_ENERGY),
-            Size::new(VYRMOSA_SIZE),
+            Species::Lyrvane,
+            Speed::new(LYRVANE_MAX_SPEED),
+            Energy::new(INITIAL_LYRVANE_ENERGY, MAX_LYRVANE_ENERGY),
+            Size::new(LYRVANE_SIZE),
             Name::new("Plant"),
-            Photosynthesis::new(VYRMOSA_ENERGY_REGEN),
+            Photosynthesis::new(LYRVANE_ENERGY_REGEN),
         ));
     }
 
     // Prey
-    // Qirval
-    let (qirval_r, qirval_g, qirval_b) = QIRVAL_COLOR;
-    let qirval_color = EntityColor::new(qirval_r, qirval_g, qirval_b);
-    for _i in 0..NB_QIRVAL {
+    // Omyra
+    let (omyra_r, omyra_g, omyra_b) = OMYRA_COLOR;
+    let omyra_color = EntityColor::new(omyra_r, omyra_g, omyra_b);
+    for _i in 0..NB_OMYRA {
         let rand_speed_factor = rng.random_range(0.3..1.0);
         commands.spawn((
             entity_bundle.clone(),
-            qirval_color.clone(),
-            Collider::rectangle(QIRVAL_SIZE, QIRVAL_SIZE),
+            omyra_color.clone(),
+            Collider::rectangle(OMYRA_SIZE, OMYRA_SIZE),
             Sprite {
-                color: qirval_color.value(),
-                custom_size: Some(Vec2::splat(QIRVAL_SIZE)),
+                color: omyra_color.value(),
+                custom_size: Some(Vec2::splat(OMYRA_SIZE)),
                 ..default()
             },
             Transform::from_xyz(
-                -half_w + walls_paddings + QIRVAL_SIZE,
-                middle_wall_h + walls_paddings + QIRVAL_SIZE,
+                -half_w + walls_paddings + OMYRA_SIZE,
+                middle_wall_h + walls_paddings + OMYRA_SIZE,
                 0.0,
             ),
             // Avian's physics
@@ -351,37 +351,37 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Species::Qirval,
+            Species::Omyra,
             Prey::new(200.0),
-            Hunter::new(vec![Species::Vyrmosa], 200.0),
-            Speed::new(QIRVAL_MAX_SPEED * rand_speed_factor),
-            Energy::new(INITIAL_QIRVAL_ENERGY, MAX_QIRVAL_ENERGY),
-            Size::new(QIRVAL_SIZE),
+            Hunter::new(vec![Species::Lyrvane], 200.0),
+            Speed::new(OMYRA_MAX_SPEED * rand_speed_factor),
+            Energy::new(INITIAL_OMYRA_ENERGY, MAX_OMYRA_ENERGY),
+            Size::new(OMYRA_SIZE),
             Name::new("Prey"),
             ActiveMover,
         ));
     }
     
     // Predators    
-    // Lorynth
-    let (lorynth_r, lorynth_g, lorynth_b) = LORYNTH_COLOR;
-    let lorynth_color = EntityColor::new(lorynth_r, lorynth_g, lorynth_b);
-    for _i in 0..NB_LORYNTH {
+    // Cindralys
+    let (cindralys_r, cindralys_g, cindralys_b) = CINDRALYS_COLOR;
+    let cindralys_color = EntityColor::new(cindralys_r, cindralys_g, cindralys_b);
+    for _i in 0..NB_CINDRALYS {
         let rand_speed_factor = rng.random_range(0.7..1.0);
         commands.spawn((
             entity_bundle.clone(),
             Name::new("Predator"),
-            lorynth_color.clone(),
-            Species::Lorynth,
-            Energy::new(INITIAL_LORYNTH_ENERGY, MAX_LORYNTH_ENERGY),
+            cindralys_color.clone(),
+            Species::Cindralys,
+            Energy::new(INITIAL_CINDRALYS_ENERGY, MAX_CINDRALYS_ENERGY),
             Prey::new(350.0),
-            Hunter::new(vec![Species::Qirval], 400.0),
-            Speed::new(LORYNTH_MAX_SPEED * rand_speed_factor),
-            Size::new(LORYNTH_SIZE),
+            Hunter::new(vec![Species::Omyra], 400.0),
+            Speed::new(CINDRALYS_MAX_SPEED * rand_speed_factor),
+            Size::new(CINDRALYS_SIZE),
             ActiveMover,
             Transform::from_xyz(
-                half_w - walls_paddings - LORYNTH_SIZE,
-                half_h - walls_paddings - LORYNTH_SIZE,
+                half_w - walls_paddings - CINDRALYS_SIZE,
+                half_h - walls_paddings - CINDRALYS_SIZE,
                 0.0,
             ),
             // Avian's physics
@@ -389,34 +389,34 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Collider::rectangle(LORYNTH_SIZE, LORYNTH_SIZE),
+            Collider::rectangle(CINDRALYS_SIZE, CINDRALYS_SIZE),
             Sprite {
-                color: lorynth_color.value(),
-                custom_size: Some(Vec2::splat(LORYNTH_SIZE)),
+                color: cindralys_color.value(),
+                custom_size: Some(Vec2::splat(CINDRALYS_SIZE)),
                 ..default()
             },
         ));
     }
     
-    // Dravym
-    let (dravym_r, dravym_g, dravym_b) = DRAVYM_COLOR;
-    let dravym_color = EntityColor::new(dravym_r, dravym_g, dravym_b);
-    for _i in 0..NB_DRAVYM {
+    // Pyrralis
+    let (pyrralis_r, pyrralis_g, pyrralis_b) = PYRRALIS_COLOR;
+    let pyrralis_color = EntityColor::new(pyrralis_r, pyrralis_g, pyrralis_b);
+    for _i in 0..NB_PYRRALIS {
         let rand_speed_factor = rng.random_range(0.7..1.0);
         commands.spawn((
             entity_bundle.clone(),
             Name::new("Predator"),
-            dravym_color.clone(),
-            Species::Dravym,
-            Energy::new(INITIAL_DRAVYM_ENERGY, MAX_DRAVYM_ENERGY),
+            pyrralis_color.clone(),
+            Species::Pyrralis,
+            Energy::new(INITIAL_PYRRALIS_ENERGY, MAX_PYRRALIS_ENERGY),
             Prey::new(350.0),
-            Hunter::new(vec![Species::Qirval, Species::Lorynth], 400.0),
-            Speed::new(DRAVYM_MAX_SPEED * rand_speed_factor),
-            Size::new(DRAVYM_SIZE),
+            Hunter::new(vec![Species::Omyra, Species::Cindralys], 400.0),
+            Speed::new(PYRRALIS_MAX_SPEED * rand_speed_factor),
+            Size::new(PYRRALIS_SIZE),
             ActiveMover,
             Transform::from_xyz(
-                -half_w + walls_paddings + DRAVYM_SIZE,
-                half_h - walls_paddings - DRAVYM_SIZE,
+                -half_w + walls_paddings + PYRRALIS_SIZE,
+                half_h - walls_paddings - PYRRALIS_SIZE,
                 0.0,
             ),
             // Avian's physics
@@ -424,34 +424,34 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Collider::rectangle(DRAVYM_SIZE, DRAVYM_SIZE),
+            Collider::rectangle(PYRRALIS_SIZE, PYRRALIS_SIZE),
             Sprite {
-                color: dravym_color.value(),
-                custom_size: Some(Vec2::splat(DRAVYM_SIZE)),
+                color: pyrralis_color.value(),
+                custom_size: Some(Vec2::splat(PYRRALIS_SIZE)),
                 ..default()
             },
         ));
     }
 
     // Apex predators
-    // Zyralith
-    let (zyralith_r, zyralith_g, zyralith_b) = ZYRALITH_COLOR;
-    let zyralith_color = EntityColor::new(zyralith_r, zyralith_g, zyralith_b);
-    for _i in 0..NB_ZYRALITH {
+    // Onytheron
+    let (onytheron_r, onytheron_g, onytheron_b) = ONYTHERON_COLOR;
+    let onytheron_color = EntityColor::new(onytheron_r, onytheron_g, onytheron_b);
+    for _i in 0..NB_ONYTHERON {
         let rand_speed_factor = rng.random_range(0.7..1.0);
         commands.spawn((
             entity_bundle.clone(),
             Name::new("Super Predator"),
-            zyralith_color.clone(),
-            Species::Zyralith,
-            Energy::new(INITIAL_ZYRALITH_ENERGY, MAX_ZYRALITH_ENERGY),
-            Hunter::new(vec![Species::Dravym, Species::Lorynth], 500.0),
-            Speed::new(ZYRALITH_MAX_SPEED * rand_speed_factor),
-            Size::new(ZYRALITH_SIZE),
+            onytheron_color.clone(),
+            Species::Onytheron,
+            Energy::new(INITIAL_ONYTHERON_ENERGY, MAX_ONYTHERON_ENERGY),
+            Hunter::new(vec![Species::Pyrralis, Species::Cindralys], 500.0),
+            Speed::new(ONYTHERON_MAX_SPEED * rand_speed_factor),
+            Size::new(ONYTHERON_SIZE),
             ActiveMover,
             Transform::from_xyz(
-                half_w - walls_paddings - ZYRALITH_SIZE,
-                middle_wall_h + walls_paddings + ZYRALITH_SIZE,
+                half_w - walls_paddings - ONYTHERON_SIZE,
+                middle_wall_h + walls_paddings + ONYTHERON_SIZE,
                 0.0,
             ),
             // Avian's physics
@@ -459,10 +459,10 @@ fn spawn_entities(commands: &mut Commands) {
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                 MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
             )),
-            Collider::rectangle(ZYRALITH_SIZE, ZYRALITH_SIZE),
+            Collider::rectangle(ONYTHERON_SIZE, ONYTHERON_SIZE),
             Sprite {
-                color: zyralith_color.value(),
-                custom_size: Some(Vec2::splat(ZYRALITH_SIZE)),
+                color: onytheron_color.value(),
+                custom_size: Some(Vec2::splat(ONYTHERON_SIZE)),
                 ..default()
             },
         ));

@@ -27,7 +27,13 @@ pub enum Species {
     Qirval,
     Lorynth,
     Dravym,
-    Zyralith
+    Zyralith,
+    // Onomora - Thermal spring basin
+    Lyrvane,
+    Omyra,
+    Cindralys,
+    Pyrralis,
+    Onytheron
 }
 
 #[derive(Component, Clone)]
