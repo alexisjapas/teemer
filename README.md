@@ -2,8 +2,8 @@
 ## Roadmap
 ### 2025-09-29
 #### MH
-- [ ] Enable more than 61s --> add stop conditions
 - [ ] Import species from CSV
+- [ ] Enable more than 61s --> add stop conditions
 
 #### NTH
 - [ ] Per species reactivity
@@ -43,7 +43,7 @@
 - Change font
 
 ### Steam game
-- [] Finish a beta version
+- Finish a beta version
 
 ### Lives
 - [ ] Spawn entities
