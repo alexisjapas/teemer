@@ -1491,17 +1491,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bounce"
-version = "0.1.0"
-dependencies = [
- "avian2d",
- "bevy",
- "bevy_capture",
- "chrono",
- "rand 0.9.2",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4301,6 +4290,17 @@ dependencies = [
  "grid",
  "serde",
  "slotmap",
+]
+
+[[package]]
+name = "teemlabs"
+version = "0.1.0"
+dependencies = [
+ "avian2d",
+ "bevy",
+ "bevy_capture",
+ "chrono",
+ "rand 0.9.2",
 ]
 
 [[package]]
