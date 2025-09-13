@@ -1,3 +1,4 @@
+use crate::config::RuntimeConfig;
 use bevy::prelude::*;
 
 #[derive(Component, Debug, PartialEq, Eq, Clone, Copy)]
@@ -33,7 +34,84 @@ pub enum Species {
     Omyra,
     Cindralys,
     Pyrralis,
-    Onytheron
+    Onytheron,
+}
+
+impl Species {
+    pub fn from_string(s: &str) -> Option<Self> {
+        match s.to_lowercase().as_str() {
+            // Plants
+            "sahlalga" => Some(Species::Sahlalga),
+            "mirajun" => Some(Species::Mirajun),
+            "lodril" => Some(Species::Lodril),
+            // Prey
+            "dunetide" => Some(Species::Dunetide),
+            "vanyr" => Some(Species::Vanyr),
+            // Predators
+            "gharlox" => Some(Species::Gharlox),
+            "thalvyrn" => Some(Species::Thalvyrn),
+            // Apex predators
+            "hakursa" => Some(Species::Hakursa),
+            "myrrkul" => Some(Species::Myrrkul),
+            // Ezerast - Salt marsh
+            "qyrsel" => Some(Species::Qyrsel),
+            "ozyrae" => Some(Species::Ozyrae),
+            "veytris" => Some(Species::Veytris),
+            "brisqal" => Some(Species::Brisqal),
+            "chalyth" => Some(Species::Chalyth),
+            "vorqualis" => Some(Species::Vorqualis),
+            // Irr'Umar - Swamp
+            "vyrmosa" => Some(Species::Vyrmosa),
+            "qirval" => Some(Species::Qirval),
+            "lorynth" => Some(Species::Lorynth),
+            "dravym" => Some(Species::Dravym),
+            "zyralith" => Some(Species::Zyralith),
+            // Onomora - Thermal spring basin
+            "lyrvane" => Some(Species::Lyrvane),
+            "omyra" => Some(Species::Omyra),
+            "cindralys" => Some(Species::Cindralys),
+            "pyrralis" => Some(Species::Pyrralis),
+            "onytheron" => Some(Species::Onytheron),
+            _ => None,
+        }
+    }
+
+    pub fn to_string(&self) -> &'static str {
+        match self {
+            // Plants
+            Species::Sahlalga => "sahlalga",
+            Species::Mirajun => "mirajun",
+            Species::Lodril => "lodril",
+            // Prey
+            Species::Dunetide => "dunetide",
+            Species::Vanyr => "vanyr",
+            // Predators
+            Species::Gharlox => "gharlox",
+            Species::Thalvyrn => "thalvyrn",
+            // Apex predators
+            Species::Hakursa => "hakursa",
+            Species::Myrrkul => "myrrkul",
+            // Ezerast - Salt marsh
+            Species::Qyrsel => "qyrsel",
+            Species::Ozyrae => "ozyrae",
+            Species::Veytris => "veytris",
+            Species::Brisqal => "brisqal",
+            Species::Chalyth => "chalyth",
+            Species::Vorqualis => "vorqualis",
+            // Irr'Umar - Swamp
+            Species::Vyrmosa => "vyrmosa",
+            Species::Qirval => "qirval",
+            Species::Lorynth => "lorynth",
+            Species::Dravym => "dravym",
+            Species::Zyralith => "zyralith",
+            // Onomora - Thermal spring basin
+            Species::Lyrvane => "lyrvane",
+            Species::Omyra => "omyra",
+            Species::Cindralys => "cindralys",
+            Species::Pyrralis => "pyrralis",
+            Species::Onytheron => "onytheron",
+        }
+    }
 }
 
 #[derive(Component, Clone)]
@@ -176,11 +254,17 @@ pub struct HudBatches {
 
 #[derive(Clone)]
 pub struct HudBatch {
-    pub title: &'static str,
+    pub title: String,
     pub sprite_color: (f32, f32, f32),
-    pub details: &'static str,
-    pub stats: &'static str,
-    pub description: &'static str,
+    pub details: String,
+    pub stats: String,
+    pub description: String,
+}
+
+/// Configuration
+#[derive(Resource)]
+pub struct GameConfig {
+    pub runtime: RuntimeConfig,
 }
 
 /// DEBUG

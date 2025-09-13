@@ -1,5 +1,7 @@
-use crate::components::*;
-
+use crate::components::{EntityColor, HudBatch, Species};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::fs;
 
 pub const PREVIEW_MODE: bool = cfg!(feature = "preview");
 
@@ -27,46 +29,288 @@ pub const HUNTING_REACTIVITY: f32 = 10.0;
 pub const FLEEING_REACTIVITY: f32 = 10.0;
 
 /// DEBUG
-pub const TITLE: &str = "Region: Onomora | Biome: Thermal spring basin";
-pub const VERSION_NAME: &str = "0.0.0 [AQUATIC_CHAOS]";
-pub const LAB_NAME: &str = "1";
-pub const RUN_IT: &str = "34";
-pub const DEBUG: bool = true;
 pub const DEBUG_FONT_SIZE: f32 = 20.0;
 pub const DEBUG_POS_PADDING: f32 = 2.0;
 pub const FRAMES_PER_UPDATE: u32 = 180;
 
-/// ENTITIES
-// Plants
-pub const NB_LYRVANE: i32 = 64;
-pub const LYRVANE_SIZE: f32 = 6.0;
-pub const MAX_LYRVANE_ENERGY: f32 = 180.0;
-pub const INITIAL_LYRVANE_ENERGY: f32 = 100.0;
-pub const LYRVANE_ENERGY_REGEN: f32 = 17.0;
-pub const LYRVANE_COLOR: (f32, f32, f32) = (0.894, 0.471, 0.086);
-pub const LYRVANE_MAX_SPEED: f32 = 0.0;
+/// TOML Configuration Structures
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct LoreConfig {
+    pub biomes: HashMap<String, BiomeData>,
+}
 
-// Apex predators
-pub const NB_ONYTHERON: i32 = 4;
-pub const ONYTHERON_SIZE: f32 = 26.0;
-pub const MAX_ONYTHERON_ENERGY: f32 = START_MAX_ENERGY;
-pub const INITIAL_ONYTHERON_ENERGY: f32 = START_ENERGY;
-pub const ONYTHERON_COLOR: (f32, f32, f32) = START_COLOR;
-pub const ONYTHERON_MAX_SPEED: f32 = START_MAX_SPEED;
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct BiomeData {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub biome_type: String,
+    pub environment: Environment,
+    pub species: HashMap<String, SpeciesData>,
+}
 
-/// HUD BATCHES
-pub static BATCHES: &[HudBatch] = &[    
-    HudBatch {
-        title: TITLE,
-        sprite_color: PYRRALIS_COLOR,
-        details: "Species: Pyrralis\n                      <<<\nType: Super predator",
-        stats: concat!("Max energy: 550.0\n>>>                      \nMax speed: 70.0"),
-        description:
-"Serpentine super predator that coils around\n
-Cindralys or Omyra. Pyrralis uses ambush tactics in\n
-geothermal eddies, striking with calculated\n
-precision. Its violet-blue iridescence shimmers\n
-like a spectral heat wave in the mineral-rich\n
-waters.",
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Environment {
+    pub water_color: [f32; 3],
+    pub frame_color: [f32; 3],
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct SpeciesData {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub species_type: String,
+    pub size: i32,
+    pub color: [f32; 3],
+    pub description: String,
+    #[serde(default)]
+    pub eats: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct SimulationConfig {
+    pub simulation: SimulationMeta,
+    pub biome: String,
+    pub populations: HashMap<String, u32>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct SimulationMeta {
+    pub version: String,
+    pub lab_name: String,
+    pub run_id: String,
+}
+
+/// Text wrapping utility for descriptions
+pub fn wrap_text(text: &str, max_width: usize) -> String {
+    let words: Vec<&str> = text.split_whitespace().collect();
+    let mut lines = Vec::new();
+    let mut current_line = String::new();
+
+    for word in words {
+        // Check if adding this word would exceed the limit
+        let potential_length = if current_line.is_empty() {
+            word.len()
+        } else {
+            current_line.len() + 1 + word.len() // +1 for the space
+        };
+
+        if potential_length <= max_width {
+            // Add word to current line
+            if !current_line.is_empty() {
+                current_line.push(' ');
+            }
+            current_line.push_str(word);
+        } else {
+            // Start new line with this word
+            if !current_line.is_empty() {
+                lines.push(current_line);
+            }
+            current_line = word.to_string();
+        }
     }
-];
+
+    // Don't forget the last line
+    if !current_line.is_empty() {
+        lines.push(current_line);
+    }
+
+    lines.join("\n")
+}
+
+/// Configuration Loading Functions
+pub fn load_lore_config(path: &str) -> Result<LoreConfig, Box<dyn std::error::Error>> {
+    let content = fs::read_to_string(path)?;
+    let config: LoreConfig = toml::from_str(&content)?;
+    Ok(config)
+}
+
+pub fn load_simulation_config(path: &str) -> Result<SimulationConfig, Box<dyn std::error::Error>> {
+    let content = fs::read_to_string(path)?;
+    let config: SimulationConfig = toml::from_str(&content)?;
+    Ok(config)
+}
+
+/// Runtime Configuration
+pub struct RuntimeConfig {
+    pub lore: LoreConfig,
+    pub simulation: SimulationConfig,
+    pub title: String,
+    pub batches: Vec<HudBatch>,
+}
+
+impl RuntimeConfig {
+    pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
+        // Load configuration files with better error context
+        let lore = load_lore_config("src/lore.toml")
+            .map_err(|e| format!("Failed to load lore config: {}", e))?;
+        let simulation = load_simulation_config("src/simulation.toml")
+            .map_err(|e| format!("Failed to load simulation config: {}", e))?;
+
+        // Validate biome exists
+        let current_biome_key = &simulation.biome;
+        let current_biome = lore.biomes.get(current_biome_key).ok_or(format!(
+            "Biome '{}' not found in lore config. Available biomes: {:?}",
+            current_biome_key,
+            lore.biomes.keys().collect::<Vec<_>>()
+        ))?;
+
+        // Validate all population species exist in the biome
+        for species_key in simulation.populations.keys() {
+            if !current_biome.species.contains_key(species_key) {
+                return Err(format!(
+                    "Population species '{}' not found in biome '{}'. Available species: {:?}",
+                    species_key,
+                    current_biome_key,
+                    current_biome.species.keys().collect::<Vec<_>>()
+                )
+                .into());
+            }
+        }
+
+        // Validate eating relationships
+        for (species_key, species_data) in &current_biome.species {
+            for prey_name in &species_data.eats {
+                if !current_biome.species.contains_key(prey_name) {
+                    return Err(format!(
+                        "Species '{}' eats '{}' but '{}' is not defined in biome '{}'",
+                        species_key, prey_name, prey_name, current_biome_key
+                    )
+                    .into());
+                }
+            }
+        }
+
+        // Generate title from biome info
+        let title = format!(
+            "Region: {} | Biome: {}",
+            current_biome.name, current_biome.biome_type
+        );
+
+        // Generate HUD batches from species data
+        let mut batches = Vec::new();
+        for (species_key, species_data) in &current_biome.species {
+            if species_data.species_type == "Fauna" {
+                let batch = HudBatch {
+                    title: title.clone(),
+                    sprite_color: (
+                        species_data.color[0],
+                        species_data.color[1],
+                        species_data.color[2],
+                    ),
+                    details: format!(
+                        "Species: {}\n                      <<<\nType: {}",
+                        species_data.name, species_data.species_type
+                    ),
+                    stats: format!(
+                        "Size: {}\n>>>                      \nType: {}",
+                        species_data.size, species_data.species_type
+                    ),
+                    description: wrap_text(&species_data.description, 52),
+                };
+                batches.push(batch);
+            }
+        }
+
+        // Ensure we have at least one batch for HUD
+        if batches.is_empty() {
+            return Err(format!(
+                "No Fauna species found in biome '{}' for HUD display",
+                current_biome_key
+            )
+            .into());
+        }
+
+        Ok(Self {
+            lore,
+            simulation,
+            title,
+            batches,
+        })
+    }
+
+    pub fn get_species_color(&self, species_name: &str) -> Option<[f32; 3]> {
+        let current_biome = self.lore.biomes.get(&self.simulation.biome)?;
+        current_biome.species.get(species_name).map(|s| s.color)
+    }
+
+    pub fn get_species_size(&self, species_name: &str) -> Option<i32> {
+        let current_biome = self.lore.biomes.get(&self.simulation.biome)?;
+        current_biome.species.get(species_name).map(|s| s.size)
+    }
+
+    pub fn get_species_population(&self, species_name: &str) -> Option<u32> {
+        self.simulation.populations.get(species_name).copied()
+    }
+
+    pub fn get_species_eats(&self, species_name: &str) -> Option<&Vec<String>> {
+        let current_biome = self.lore.biomes.get(&self.simulation.biome)?;
+        current_biome.species.get(species_name).map(|s| &s.eats)
+    }
+
+    pub fn get_species_params(&self, species_name: &str) -> Option<EntitySpawnParams> {
+        let current_biome = self.lore.biomes.get(&self.simulation.biome)?;
+        let species_data = current_biome.species.get(species_name)?;
+        let population = self.get_species_population(species_name).unwrap_or(0);
+
+        Some(EntitySpawnParams::from_species_data(
+            species_data,
+            population,
+        ))
+    }
+
+    pub fn get_title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn get_batches(&self) -> &[HudBatch] {
+        &self.batches
+    }
+}
+
+/// Entity spawning parameters derived from config
+#[derive(Debug, Clone)]
+pub struct EntitySpawnParams {
+    pub name: String,
+    pub species_type: String,
+    pub size: f32,
+    pub color: [f32; 3],
+    pub population: u32,
+    pub max_speed: f32,
+    pub initial_energy: f32,
+    pub max_energy: f32,
+    pub detection_range: f32,
+    pub is_plant: bool,
+    pub is_active_mover: bool,
+    pub photosynthesis_rate: Option<f32>,
+}
+
+impl EntitySpawnParams {
+    pub fn from_species_data(data: &SpeciesData, population: u32) -> Self {
+        let is_plant = data.species_type.to_lowercase() == "flora";
+        let size = data.size as f32;
+
+        // Scale parameters based on size and type
+        let base_speed = if is_plant {
+            0.0
+        } else {
+            20.0 + size * 2.0
+        };
+        let base_energy = size * 50.0;
+        let detection_range = 100.0 + size * 15.0;
+
+        Self {
+            name: data.name.clone(),
+            species_type: data.species_type.clone(),
+            size: size,
+            color: data.color,
+            population,
+            max_speed: base_speed,
+            initial_energy: base_energy * 0.7, // Start at 70% of max
+            max_energy: base_energy,
+            detection_range,
+            is_plant,
+            is_active_mover: !is_plant,
+            photosynthesis_rate: if is_plant { Some(5.0) } else { None },
+        }
+    }
+}

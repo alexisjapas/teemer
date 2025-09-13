@@ -100,7 +100,7 @@
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath libraries;
 
           # Set WINIT default scale
-          WINIT_X11_SCALE_FACTOR = 1.0;
+          WINIT_X11_SCALE_FACTOR = 0.7;
 
           # Alternative: you can also use shellHook to set the path
           shellHook = ''

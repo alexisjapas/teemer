@@ -1,0 +1,19 @@
+biome = "irr_umar"
+
+[simulation]
+version = "0.0.0 [AQUATIC_CHAOS]"
+lab_name = "1"
+run_id = "35"
+
+[populations]
+# sahlalga = 64
+# mirajun = 32
+# dunetide = 16
+# gharlox = 8
+# hakursa = 4
+
+vyrmosa = 10
+qirval = 10
+lorynth = 10
+dravym = 10
+zyralith = 10

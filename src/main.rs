@@ -24,7 +24,17 @@ fn main() {
 
     // Simulation
     app.add_plugins((PhysicsPlugins::default(),))
-        .add_systems(Startup, setup)
+        .add_systems(
+            Startup,
+            (
+                setup,
+                generate_world,
+                spawn_entities,
+                spawn_hud,
+                spawn_debugger,
+            )
+                .chain(),
+        )
         .add_systems(
             Update,
             (
@@ -45,10 +55,8 @@ fn main() {
         .insert_resource(Gravity(Vec2::ZERO))
         // Miscellaneous
         .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
-        .insert_resource(HudBatches {
-            batches: BATCHES.to_vec(),
-            index: 0,
-        });
+        .init_resource::<FrameCount>()
+        .add_systems(Update, update_debugger);
 
     // Preview vs generation
     if PREVIEW_MODE {
@@ -82,18 +90,20 @@ fn main() {
         .add_systems(Update, (manual_physics_step, capture_frame));
     }
 
-    // Debug
-    if DEBUG {
-        app.init_resource::<FrameCount>()
-            .add_systems(Update, update_debugger);
-    }
-
     // Run
     app.run();
 }
 
 /// Setup
 fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
+    // Load runtime configuration
+    let runtime_config = RuntimeConfig::load().expect("Failed to load configuration");
+
+    // Insert configuration as resource
+    commands.insert_resource(GameConfig {
+        runtime: runtime_config,
+    });
+
     // Create outputs directories
     if PREVIEW_MODE {
         // Camera
@@ -123,37 +133,35 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
             CaptureBundle::default(),
         ));
     }
-
-    // Walls
-    generate_world(&mut commands);
-
-    // Entities
-    spawn_entities(&mut commands);
-
-    // Texts
-    spawn_hud(&mut commands);
-
-    // Debugger
-    if DEBUG {
-        spawn_debugger(&mut commands);
-    }
 }
 
 /// Simulation
-fn generate_world(commands: &mut Commands) {
+fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     let wall_restitution = 0.7;
     let half_w = WINDOW_WIDTH / 2.0;
     let half_h = WINDOW_HEIGHT / 2.0;
     let middle_wall_h = -half_h + WALLS_THICKNESS / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH);
 
-    let (water_r, water_g, water_b) = WALLS_COLOR;
-    let walls_color = Color::linear_rgb(water_r, water_g, water_b);
-
-    // Water
-    let (water_r, water_g, water_b) = WATER_COLOR;
+    // Get current biome data
+    let current_biome = config
+        .runtime
+        .lore
+        .biomes
+        .get(&config.runtime.simulation.biome)
+        .expect("Current biome not found in lore config");
+    let walls_color = Color::linear_rgb(
+        current_biome.environment.frame_color[0],
+        current_biome.environment.frame_color[1],
+        current_biome.environment.frame_color[2],
+    );
+    let water_color = Color::linear_rgb(
+        current_biome.environment.water_color[0],
+        current_biome.environment.water_color[1],
+        current_biome.environment.water_color[2],
+    );
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(water_r, water_g, water_b),
+            color: water_color.clone(),
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WINDOW_WIDTH)),
             ..default()
         },
@@ -280,7 +288,7 @@ fn generate_world(commands: &mut Commands) {
     ));
 }
 
-fn spawn_entities(commands: &mut Commands) {
+fn spawn_entities(mut commands: Commands, config: Res<GameConfig>) {
     let mut rng = rand::rng();
 
     let walls_paddings = WALLS_THICKNESS * 2.0 + 8.0;
@@ -297,189 +305,122 @@ fn spawn_entities(commands: &mut Commands) {
         Consumable,
     );
 
-    // Plants
-    // Lyrvane
-    let (lyrvane_r, lyrvane_g, lyrvane_b) = LYRVANE_COLOR;
-    let lyrvane_color = EntityColor::new(lyrvane_r, lyrvane_g, lyrvane_b);
-    for _i in 0..NB_LYRVANE {
-        commands.spawn((
-            entity_bundle.clone(),
-            lyrvane_color.clone(),
-            Collider::rectangle(LYRVANE_SIZE, LYRVANE_SIZE),
-            Sprite {
-                color: lyrvane_color.value(),
-                custom_size: Some(Vec2::splat(LYRVANE_SIZE)),
-                ..default()
-            },
-            Transform::from_xyz(0.0, middle_wall_h + half_w, 0.0),
-            // Avian's physics
-            LinearVelocity(Vec2::new(
-                MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * (rng.random::<f32>() * 2.0 - 1.0),
-            )),
-            Species::Lyrvane,
-            Speed::new(LYRVANE_MAX_SPEED),
-            Energy::new(INITIAL_LYRVANE_ENERGY, MAX_LYRVANE_ENERGY),
-            Size::new(LYRVANE_SIZE),
-            Name::new("Plant"),
-            Photosynthesis::new(LYRVANE_ENERGY_REGEN),
-        ));
-    }
+    // Get current biome data
+    let current_biome = config
+        .runtime
+        .lore
+        .biomes
+        .get(&config.runtime.simulation.biome)
+        .expect("Current biome not found in lore config");
 
-    // Prey
-    // Omyra
-    let (omyra_r, omyra_g, omyra_b) = OMYRA_COLOR;
-    let omyra_color = EntityColor::new(omyra_r, omyra_g, omyra_b);
-    for _i in 0..NB_OMYRA {
-        let rand_speed_factor = rng.random_range(0.3..1.0);
-        commands.spawn((
-            entity_bundle.clone(),
-            omyra_color.clone(),
-            Collider::rectangle(OMYRA_SIZE, OMYRA_SIZE),
-            Sprite {
-                color: omyra_color.value(),
-                custom_size: Some(Vec2::splat(OMYRA_SIZE)),
-                ..default()
-            },
-            Transform::from_xyz(
-                -half_w + walls_paddings + OMYRA_SIZE,
-                middle_wall_h + walls_paddings + OMYRA_SIZE,
-                0.0,
-            ),
-            // Avian's physics
-            LinearVelocity(Vec2::new(
-                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
-            )),
-            Species::Omyra,
-            Prey::new(200.0),
-            Hunter::new(vec![Species::Lyrvane], 200.0),
-            Speed::new(OMYRA_MAX_SPEED * rand_speed_factor),
-            Energy::new(INITIAL_OMYRA_ENERGY, MAX_OMYRA_ENERGY),
-            Size::new(OMYRA_SIZE),
-            Name::new("Prey"),
-            ActiveMover,
-        ));
-    }
-    
-    // Predators    
-    // Cindralys
-    let (cindralys_r, cindralys_g, cindralys_b) = CINDRALYS_COLOR;
-    let cindralys_color = EntityColor::new(cindralys_r, cindralys_g, cindralys_b);
-    for _i in 0..NB_CINDRALYS {
-        let rand_speed_factor = rng.random_range(0.7..1.0);
-        commands.spawn((
-            entity_bundle.clone(),
-            Name::new("Predator"),
-            cindralys_color.clone(),
-            Species::Cindralys,
-            Energy::new(INITIAL_CINDRALYS_ENERGY, MAX_CINDRALYS_ENERGY),
-            Prey::new(350.0),
-            Hunter::new(vec![Species::Omyra], 400.0),
-            Speed::new(CINDRALYS_MAX_SPEED * rand_speed_factor),
-            Size::new(CINDRALYS_SIZE),
-            ActiveMover,
-            Transform::from_xyz(
-                half_w - walls_paddings - CINDRALYS_SIZE,
-                half_h - walls_paddings - CINDRALYS_SIZE,
-                0.0,
-            ),
-            // Avian's physics
-            LinearVelocity(Vec2::new(
-                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
-            )),
-            Collider::rectangle(CINDRALYS_SIZE, CINDRALYS_SIZE),
-            Sprite {
-                color: cindralys_color.value(),
-                custom_size: Some(Vec2::splat(CINDRALYS_SIZE)),
-                ..default()
-            },
-        ));
-    }
-    
-    // Pyrralis
-    let (pyrralis_r, pyrralis_g, pyrralis_b) = PYRRALIS_COLOR;
-    let pyrralis_color = EntityColor::new(pyrralis_r, pyrralis_g, pyrralis_b);
-    for _i in 0..NB_PYRRALIS {
-        let rand_speed_factor = rng.random_range(0.7..1.0);
-        commands.spawn((
-            entity_bundle.clone(),
-            Name::new("Predator"),
-            pyrralis_color.clone(),
-            Species::Pyrralis,
-            Energy::new(INITIAL_PYRRALIS_ENERGY, MAX_PYRRALIS_ENERGY),
-            Prey::new(350.0),
-            Hunter::new(vec![Species::Omyra, Species::Cindralys], 400.0),
-            Speed::new(PYRRALIS_MAX_SPEED * rand_speed_factor),
-            Size::new(PYRRALIS_SIZE),
-            ActiveMover,
-            Transform::from_xyz(
-                -half_w + walls_paddings + PYRRALIS_SIZE,
-                half_h - walls_paddings - PYRRALIS_SIZE,
-                0.0,
-            ),
-            // Avian's physics
-            LinearVelocity(Vec2::new(
-                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
-            )),
-            Collider::rectangle(PYRRALIS_SIZE, PYRRALIS_SIZE),
-            Sprite {
-                color: pyrralis_color.value(),
-                custom_size: Some(Vec2::splat(PYRRALIS_SIZE)),
-                ..default()
-            },
-        ));
-    }
+    // Spawn entities dynamically based on config
+    for (species_key, species_data) in &current_biome.species {
+        if let Some(population) = config.runtime.simulation.populations.get(species_key) {
+            if *population == 0 {
+                continue;
+            }
 
-    // Apex predators
-    // Onytheron
-    let (onytheron_r, onytheron_g, onytheron_b) = ONYTHERON_COLOR;
-    let onytheron_color = EntityColor::new(onytheron_r, onytheron_g, onytheron_b);
-    for _i in 0..NB_ONYTHERON {
-        let rand_speed_factor = rng.random_range(0.7..1.0);
-        commands.spawn((
-            entity_bundle.clone(),
-            Name::new("Super Predator"),
-            onytheron_color.clone(),
-            Species::Onytheron,
-            Energy::new(INITIAL_ONYTHERON_ENERGY, MAX_ONYTHERON_ENERGY),
-            Hunter::new(vec![Species::Pyrralis, Species::Cindralys], 500.0),
-            Speed::new(ONYTHERON_MAX_SPEED * rand_speed_factor),
-            Size::new(ONYTHERON_SIZE),
-            ActiveMover,
-            Transform::from_xyz(
-                half_w - walls_paddings - ONYTHERON_SIZE,
-                middle_wall_h + walls_paddings + ONYTHERON_SIZE,
-                0.0,
-            ),
-            // Avian's physics
-            LinearVelocity(Vec2::new(
-                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
-                MAX_SPEED * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
-            )),
-            Collider::rectangle(ONYTHERON_SIZE, ONYTHERON_SIZE),
-            Sprite {
-                color: onytheron_color.value(),
-                custom_size: Some(Vec2::splat(ONYTHERON_SIZE)),
-                ..default()
-            },
-        ));
+            let params = EntitySpawnParams::from_species_data(species_data, *population);
+            let species_enum = Species::from_string(species_key)
+                .expect(&format!("Unknown species: {}", species_key));
+            let entity_color = EntityColor::new(params.color[0], params.color[1], params.color[2]);
+
+            // Create hunting relationships
+            let mut hunts = Vec::new();
+            for prey_name in &species_data.eats {
+                if let Some(prey_species) = Species::from_string(prey_name) {
+                    hunts.push(prey_species);
+                }
+            }
+
+            for _i in 0..*population {
+                let rand_speed_factor = rng.random_range(0.3..1.0);
+                let mut entity_commands = commands.spawn((
+                    entity_bundle.clone(),
+                    entity_color.clone(),
+                    species_enum,
+                    Energy::new(params.initial_energy, params.max_energy),
+                    Size::new(params.size),
+                    Speed::new(params.max_speed * rand_speed_factor),
+                    Collider::rectangle(params.size, params.size),
+                    Sprite {
+                        color: entity_color.value(),
+                        custom_size: Some(Vec2::splat(params.size)),
+                        ..default()
+                    },
+                    Transform::from_xyz(
+                        rng.random::<f32>() * (WINDOW_WIDTH - walls_paddings) - half_w
+                            + walls_paddings,
+                        rng.random::<f32>() * (WINDOW_WIDTH - walls_paddings) + middle_wall_h,
+                        0.0,
+                    ),
+                    LinearVelocity(Vec2::new(
+                        params.max_speed * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
+                        params.max_speed * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
+                    )),
+                ));
+
+                // Add type-specific components
+                match species_data.species_type.as_str() {
+                    "Flora" => {
+                        entity_commands.insert((
+                            Name::new("Plant"),
+                            Photosynthesis::new(params.photosynthesis_rate.unwrap_or(5.0)),
+                        ));
+                    }
+                    "Fauna" => {
+                        entity_commands.insert(Name::new("Fauna"));
+
+                        // Add hunter component if this species eats others
+                        if !hunts.is_empty() {
+                            entity_commands
+                                .insert(Hunter::new(hunts.clone(), params.detection_range));
+                        }
+
+                        // Add prey component if this species can be eaten
+                        let can_be_eaten = current_biome
+                            .species
+                            .values()
+                            .any(|other| other.eats.contains(species_key));
+                        if can_be_eaten {
+                            entity_commands.insert(Prey::new(params.detection_range));
+                        }
+
+                        // Add active mover for non-plant species
+                        if params.is_active_mover {
+                            entity_commands.insert(ActiveMover);
+                        }
+                    }
+                    _ => {
+                        entity_commands.insert(Name::new("Unknown"));
+                    }
+                }
+            }
+        }
     }
 }
 
 /// HUD
-fn spawn_hud(commands: &mut Commands) {
+fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
     let half_h = WINDOW_HEIGHT / 2.0;
     let middle_wall_h = -half_h + (WINDOW_HEIGHT - WINDOW_WIDTH);
     let text_z = 1.0; // Ensure text is above other sprites
+
+    // Get the first batch for initial display
+    let batches = config.runtime.get_batches();
+    let first_batch = batches.first().expect("No HUD batches available");
+
+    // Insert HudBatches resource
+    commands.insert_resource(HudBatches {
+        batches: batches.to_vec(),
+        index: 0,
+    });
 
     // Title
     let title_y = middle_wall_h - TITLE_FONT_SIZE + WALLS_THICKNESS / 2.0;
     let title = commands
         .spawn((
-            Text2d::new(TITLE),
+            Text2d::new(config.runtime.get_title()),
             TextFont {
                 font_size: TITLE_FONT_SIZE,
                 ..default()
@@ -492,7 +433,7 @@ fn spawn_hud(commands: &mut Commands) {
         .id();
 
     // Entity sprite
-    let (start_r, start_g, start_b) = START_COLOR;
+    let (start_r, start_g, start_b) = first_batch.sprite_color;
     let sprite_y = middle_wall_h - WALLS_THICKNESS / 2.0 - TITLE_FONT_SIZE - 64.0; // Below middle wall
     let sprite = commands
         .spawn((
@@ -511,7 +452,7 @@ fn spawn_hud(commands: &mut Commands) {
     // Details
     let details = commands
         .spawn((
-            Text2d::new(START_DETAILS),
+            Text2d::new(&first_batch.details),
             TextFont {
                 font_size: SUBTITLE_FONT_SIZE,
                 ..default()
@@ -526,7 +467,7 @@ fn spawn_hud(commands: &mut Commands) {
     // Statistics
     let stats = commands
         .spawn((
-            Text2d::new(START_STATS),
+            Text2d::new(&first_batch.stats),
             TextFont {
                 font_size: SUBTITLE_FONT_SIZE,
                 ..default()
@@ -541,7 +482,7 @@ fn spawn_hud(commands: &mut Commands) {
     // Description
     let description = commands
         .spawn((
-            Text2d::new(START_DESCRIPTION),
+            Text2d::new(&first_batch.description),
             TextFont {
                 font_size: TEXT_FONT_SIZE,
                 ..default()
@@ -564,11 +505,13 @@ fn spawn_hud(commands: &mut Commands) {
 }
 
 /// DEBUG
-fn spawn_debugger(commands: &mut Commands) {
+fn spawn_debugger(mut commands: Commands, config: Res<GameConfig>) {
     commands.spawn((
         Text2d::new(format!(
             "VERSION: V{} | LAB: L{} | RUN: R{} | FRAME N°0",
-            VERSION_NAME, LAB_NAME, RUN_IT
+            config.runtime.simulation.simulation.version,
+            config.runtime.simulation.simulation.lab_name,
+            config.runtime.simulation.simulation.run_id
         )),
         TextFont {
             font_size: DEBUG_FONT_SIZE,
