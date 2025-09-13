@@ -75,43 +75,6 @@ impl Species {
             _ => None,
         }
     }
-
-    pub fn to_string(&self) -> &'static str {
-        match self {
-            // Plants
-            Species::Sahlalga => "sahlalga",
-            Species::Mirajun => "mirajun",
-            Species::Lodril => "lodril",
-            // Prey
-            Species::Dunetide => "dunetide",
-            Species::Vanyr => "vanyr",
-            // Predators
-            Species::Gharlox => "gharlox",
-            Species::Thalvyrn => "thalvyrn",
-            // Apex predators
-            Species::Hakursa => "hakursa",
-            Species::Myrrkul => "myrrkul",
-            // Ezerast - Salt marsh
-            Species::Qyrsel => "qyrsel",
-            Species::Ozyrae => "ozyrae",
-            Species::Veytris => "veytris",
-            Species::Brisqal => "brisqal",
-            Species::Chalyth => "chalyth",
-            Species::Vorqualis => "vorqualis",
-            // Irr'Umar - Swamp
-            Species::Vyrmosa => "vyrmosa",
-            Species::Qirval => "qirval",
-            Species::Lorynth => "lorynth",
-            Species::Dravym => "dravym",
-            Species::Zyralith => "zyralith",
-            // Onomora - Thermal spring basin
-            Species::Lyrvane => "lyrvane",
-            Species::Omyra => "omyra",
-            Species::Cindralys => "cindralys",
-            Species::Pyrralis => "pyrralis",
-            Species::Onytheron => "onytheron",
-        }
-    }
 }
 
 #[derive(Component, Clone)]

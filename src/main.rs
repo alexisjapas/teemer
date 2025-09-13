@@ -320,7 +320,7 @@ fn spawn_entities(mut commands: Commands, config: Res<GameConfig>) {
                 continue;
             }
 
-            let params = EntitySpawnParams::from_species_data(species_data, *population);
+            let params = EntitySpawnParams::from_species_data(species_data);
             let species_enum = Species::from_string(species_key)
                 .expect(&format!("Unknown species: {}", species_key));
             let entity_color = EntityColor::new(params.color[0], params.color[1], params.color[2]);

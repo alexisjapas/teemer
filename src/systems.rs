@@ -1,6 +1,6 @@
 use avian2d::prelude::*;
 use bevy::{app::AppExit, diagnostic::FrameCount, prelude::*};
-use bevy_capture::{Capture, encoder::frames};
+use bevy_capture::{encoder::frames, Capture};
 use rand::prelude::*;
 
 use crate::components::*;
@@ -308,7 +308,7 @@ pub fn reproduction(
         size,
         active_mover,
         transform,
-        linear_velocity,
+        _linear_velocity,
     ) in parents
     {
         let speed_value = speed.value();

@@ -1,4 +1,4 @@
-use crate::components::{EntityColor, HudBatch, Species};
+use crate::components::HudBatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -21,7 +21,6 @@ pub const SUBTITLE_FONT_SIZE: f32 = 28.0;
 pub const TEXT_FONT_SIZE: f32 = 26.0;
 
 /// Simulation
-pub const MAX_SPEED: f32 = 64.0 * if PREVIEW_MODE { 2.0 } else { 1.0 };
 pub const MOVEMENT_ENERGY_COST_FACTOR: f32 = 3.0E-5 * if PREVIEW_MODE { 0.2 } else { 3.0 };
 pub const ENERGY_TRANSFER_RATE: f32 = 1.0 / 3.0;
 pub const IDLE_ENERGY_LOSS: f32 = 3.0;
@@ -188,7 +187,7 @@ impl RuntimeConfig {
 
         // Generate HUD batches from species data
         let mut batches = Vec::new();
-        for (species_key, species_data) in &current_biome.species {
+        for (_species_key, species_data) in &current_biome.species {
             if species_data.species_type == "Fauna" {
                 let batch = HudBatch {
                     title: title.clone(),
@@ -228,36 +227,6 @@ impl RuntimeConfig {
         })
     }
 
-    pub fn get_species_color(&self, species_name: &str) -> Option<[f32; 3]> {
-        let current_biome = self.lore.biomes.get(&self.simulation.biome)?;
-        current_biome.species.get(species_name).map(|s| s.color)
-    }
-
-    pub fn get_species_size(&self, species_name: &str) -> Option<i32> {
-        let current_biome = self.lore.biomes.get(&self.simulation.biome)?;
-        current_biome.species.get(species_name).map(|s| s.size)
-    }
-
-    pub fn get_species_population(&self, species_name: &str) -> Option<u32> {
-        self.simulation.populations.get(species_name).copied()
-    }
-
-    pub fn get_species_eats(&self, species_name: &str) -> Option<&Vec<String>> {
-        let current_biome = self.lore.biomes.get(&self.simulation.biome)?;
-        current_biome.species.get(species_name).map(|s| &s.eats)
-    }
-
-    pub fn get_species_params(&self, species_name: &str) -> Option<EntitySpawnParams> {
-        let current_biome = self.lore.biomes.get(&self.simulation.biome)?;
-        let species_data = current_biome.species.get(species_name)?;
-        let population = self.get_species_population(species_name).unwrap_or(0);
-
-        Some(EntitySpawnParams::from_species_data(
-            species_data,
-            population,
-        ))
-    }
-
     pub fn get_title(&self) -> &str {
         &self.title
     }
@@ -270,22 +239,18 @@ impl RuntimeConfig {
 /// Entity spawning parameters derived from config
 #[derive(Debug, Clone)]
 pub struct EntitySpawnParams {
-    pub name: String,
-    pub species_type: String,
     pub size: f32,
     pub color: [f32; 3],
-    pub population: u32,
     pub max_speed: f32,
     pub initial_energy: f32,
     pub max_energy: f32,
     pub detection_range: f32,
-    pub is_plant: bool,
     pub is_active_mover: bool,
     pub photosynthesis_rate: Option<f32>,
 }
 
 impl EntitySpawnParams {
-    pub fn from_species_data(data: &SpeciesData, population: u32) -> Self {
+    pub fn from_species_data(data: &SpeciesData) -> Self {
         let is_plant = data.species_type.to_lowercase() == "flora";
         let size = data.size as f32;
 
@@ -295,16 +260,12 @@ impl EntitySpawnParams {
         let detection_range = 100.0 + size * 15.0;
 
         Self {
-            name: data.name.clone(),
-            species_type: data.species_type.clone(),
             size: size,
             color: data.color,
-            population,
             max_speed: base_speed,
             initial_energy: base_energy * 0.7, // Start at 70% of max
             max_energy: base_energy,
             detection_range,
-            is_plant,
             is_active_mover: !is_plant,
             photosynthesis_rate: if is_plant { Some(5.0) } else { None },
         }
