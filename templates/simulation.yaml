@@ -1,0 +1,11 @@
+simulation:
+  version: "1.0.0 [TEMPLATE]"
+  lab_name: "99"
+  run_id: "1"
+
+biome: "biome_1"
+
+populations:
+  species_1: 100
+  species_2: 20
+  species_3: 5
