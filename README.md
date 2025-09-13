@@ -1,14 +1,11 @@
 # Teem Engine by TeemLabs
 ## Roadmap
 ### 2025-09-29
-#### MH
-- [ ] Import species from CSV
-- [ ] Enable more than 61s --> add stop conditions
-
-#### NTH
-- [ ] Per species reactivity
+- [ ] Import biome / species from database (YAML)
+- [ ] Use config file for simulation configuration (YAML)
 
 ### After
+- [ ] Per species reactivity
 - [ ] Plants
   - [ ] Rooted-in
     - [ ] Trees (direct collisions)
@@ -38,13 +35,10 @@
 - [ ] Sync preview/gen modes
 - [ ] Optimize capture
 
-### Miscellaneous
-- Handle per entity rand std
-- Change font
+### To prioritize
+- [ ] Handle per entity rand std
+- [ ] Change font
+- [ ] Enable more than 61s --> add stop conditions
 
 ### Steam game
 - Finish a beta version
-
-### Lives
-- [ ] Spawn entities
-- [ ] Strategy changes through chat comments
