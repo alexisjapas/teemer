@@ -3,8 +3,8 @@ name = "Irr'Hakur"
 type = "Oasis pond"
 
 [biomes.irr_hakur.environment]
-water_color = [0.784, 0.631, 0.396]
-frame_color = [0.035, 0.231, 0.278]
+water_color = [0.035, 0.231, 0.278]
+frame_color = [0.784, 0.631, 0.396]
 
 [biomes.irr_hakur.species.sahlalga]
 name = "Sahlalga"
@@ -142,7 +142,7 @@ name = "Irr'Umar"
 type = "Swamp"
 
 [biomes.irr_umar.environment]
-water_color = [0.33, 0.39, 0.28]
+water_color = [0.38, 0.34, 0.26]
 frame_color = [0.18, 0.35, 0.12]
 
 [biomes.irr_umar.species.vyrmosa]

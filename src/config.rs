@@ -290,11 +290,7 @@ impl EntitySpawnParams {
         let size = data.size as f32;
 
         // Scale parameters based on size and type
-        let base_speed = if is_plant {
-            0.0
-        } else {
-            20.0 + size * 2.0
-        };
+        let base_speed = if is_plant { 0.0 } else { 20.0 + size * 2.0 };
         let base_energy = size * 50.0;
         let detection_range = 100.0 + size * 15.0;
 
