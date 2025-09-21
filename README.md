@@ -1,8 +1,11 @@
 # Teem Engine by TeemLabs
 ## Roadmap
 ### 2025-09-29
-- [ ] Import biome / species from database (YAML)
-- [ ] Use config file for simulation configuration (YAML)
+- [x] Import biome / species from database (TOML)
+- [x] Use config file for simulation configuration (TOML)
+- [ ] Rework lore
+- [ ] Improve entities parameters
+- [ ] Idle behaviour
 
 ### After
 - [ ] Per species reactivity
@@ -20,11 +23,11 @@
   - [ ] Dead bodies
   - [ ] Rejections
   - [ ] Strategy
-- [ ] Idle behaviour
 - [ ] Decision making
 - [ ] Hunting strategy
 - [ ] Fleeing strategy
 - [ ] Add obstacles
+- [ ] Use raycast for vision
 #### UI & Analysis
 - [ ] Monitor species
   - [ ] Energy
@@ -33,7 +36,7 @@
 - [ ] Run multiple simulations at once
 #### Software
 - [ ] Sync preview/gen modes
-- [ ] Optimize capture
+- [ ] Optimize capture (direct GPU encoding)
 
 ### To prioritize
 - [ ] Handle per entity rand std
