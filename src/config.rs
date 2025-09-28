@@ -267,7 +267,7 @@ impl EntitySpawnParams {
             max_energy: base_energy,
             detection_range,
             is_active_mover: !is_plant,
-            photosynthesis_rate: if is_plant { Some(5.0) } else { None },
+            photosynthesis_rate: if is_plant { Some(10.0) } else { None },
         }
     }
 }
