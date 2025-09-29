@@ -116,11 +116,9 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
         // Generate directories
         let sim_dir = format!("./outputs/{}", str_date);
         fs::create_dir_all(&sim_dir).expect("Failed to create simulation directory.");
-        let frames_dir = format!("{}/frames", sim_dir);
-        fs::create_dir_all(&frames_dir).expect("Failed to create frames directory.");
 
         // Insert as a resource
-        commands.insert_resource(FramesDir(frames_dir));
+        commands.insert_resource(SimulationMetadata{path_dir: sim_dir, name: str_date});
 
         // Headless camera
         commands.spawn((

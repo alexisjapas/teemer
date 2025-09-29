@@ -5,9 +5,9 @@ biome = "irr_hakur"
 # biome = "onomora"
 
 [simulation]
-version = "0.1.0 [AQUATIC_CHAOS]"
+version = "0.2.0 [AQUATIC_CHAOS]"
 lab_name = "1"
-run_id = "36"
+run_id = "39"
 
 [populations]
 ## Irr'Hakur oasis pond

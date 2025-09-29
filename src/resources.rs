@@ -2,4 +2,7 @@ use bevy::prelude::*;
 
 /// Resources
 #[derive(Resource)]
-pub struct FramesDir(pub String);
+pub struct SimulationMetadata {
+    pub path_dir: String,
+    pub name: String,
+}

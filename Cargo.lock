@@ -484,8 +484,7 @@ dependencies = [
 [[package]]
 name = "bevy_capture"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04b91e870840a154354c0af92787a350cc6f9c61539d6009355812ac375ea09e"
+source = "git+https://github.com/alexisjapas/bevy_capture?branch=main#6ea8b196b3c3a7faae96b8209020e6e28eee01fc"
 dependencies = [
  "bevy",
  "crossbeam-channel",
