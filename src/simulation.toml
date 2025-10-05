@@ -1,5 +1,5 @@
-biome = "irr_hakur"
-# biome = "aganandor"
+# biome = "irr_hakur"
+biome = "aganandor"
 # biome = "ezerast"
 # biome = "irr_umar"
 # biome = "onomora"
@@ -7,21 +7,21 @@ biome = "irr_hakur"
 [simulation]
 version = "0.2.0 [AQUATIC_CHAOS]"
 lab_name = "1"
-run_id = "39"
+run_id = "46"
 
 [populations]
 ## Irr'Hakur oasis pond
-sahlalga = 128
-mirajun = 64
-dunetide = 32
-gharlox = 8
-hakursa = 4
+# sahlalga = 128
+# mirajun = 64
+# dunetide = 32
+# gharlox = 8
+# hakursa = 4
 
 ## Aganandor mountain lake
-# lodril = 10
-# vanyr = 10
-# thalvyrn = 10
-# myrrkul = 10
+lodril = 1024
+vanyr = 32
+thalvyrn = 8
+myrrkul = 4
 
 ## Ezerast salt marsh
 # qyrsel = 10

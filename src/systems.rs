@@ -1,7 +1,8 @@
 use avian2d::prelude::*;
 use bevy::{app::AppExit, diagnostic::FrameCount, prelude::*};
-use bevy_capture::{encoder::mp4_ffmpeg_cli_pipe, Capture};
+use bevy_capture::{Capture, encoder::mp4_ffmpeg_cli_pipe};
 use rand::prelude::*;
+use std::time::Instant;
 
 use crate::components::*;
 use crate::config::*;
@@ -352,23 +353,58 @@ pub fn reproduction(
 /// Capture
 pub fn capture_frame(
     mut app_exit: EventWriter<AppExit>,
-    mut capture: Query<&mut Capture>,
+    mut capture_q: Query<&mut Capture>,
     mut frame_counter: Local<u32>,
+    mut stop_requested: Local<bool>,
+    mut stop_requested_at: Local<Option<Instant>>,
     simulation_metadata: Res<SimulationMetadata>,
 ) {
-    let mut capture = capture.single_mut().unwrap();
-    if !capture.is_capturing() {
-        capture.start(mp4_ffmpeg_cli_pipe::Mp4FfmpegCliPipeEncoder::new(format!("{}/{}.mp4", simulation_metadata.path_dir, simulation_metadata.name))
+    let mut capture = capture_q.single_mut().unwrap();
+
+    if !capture.is_capturing() && !*stop_requested {
+        capture.start(
+            mp4_ffmpeg_cli_pipe::Mp4FfmpegCliPipeEncoder::new(format!(
+                "{}/{}.mp4",
+                simulation_metadata.path_dir, simulation_metadata.name
+            ))
             .expect("Failed to create MP4 encoder")
             .with_framerate(30)
             .with_crf(18)
-            .with_preset("p7".to_string()));
+            .with_preset("p7".to_string()),
+        );
     }
 
     *frame_counter += 1;
     println!("{}", *frame_counter);
-    if *frame_counter >= MAX_FRAMES_TO_CAPTURE {
-        app_exit.write(AppExit::Success);
+
+    // When we reach the frame limit: request a stop (don't exit yet).
+    if *frame_counter >= MAX_FRAMES_TO_CAPTURE && !*stop_requested {
+        *stop_requested = true;
+        *stop_requested_at = Some(Instant::now());
+        // Prefer calling the API stop() if available:
+        capture.stop(); // if Capture exposes stop(); otherwise see note below.
+        println!(
+            "Requested capture stop at frame {}, waiting for encoder to finish...",
+            *frame_counter
+        );
+    }
+
+    // If stop was requested, wait for capture to end (or timeout).
+    if *stop_requested {
+        // If capture finished cleanly -> exit
+        if !capture.is_capturing() {
+            println!("Capture finished — exiting.");
+            app_exit.write(AppExit::Success);
+            return;
+        }
+
+        // Safety: force exit if encoder never finishes within a reasonable wall-clock time.
+        if let Some(started) = *stop_requested_at {
+            if started.elapsed().as_secs() > 60 {
+                eprintln!("Capture did not finish within 60s — forcing exit.");
+                app_exit.write(AppExit::Success);
+            }
+        }
     }
 }
 
