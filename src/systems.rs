@@ -1,6 +1,6 @@
 use avian2d::prelude::*;
 use bevy::{app::AppExit, diagnostic::FrameCount, prelude::*};
-use bevy_capture::{encoder::mp4_ffmpeg_cli, Capture};
+use bevy_capture::{encoder::mp4_ffmpeg_cli_pipe, Capture};
 use rand::prelude::*;
 
 use crate::components::*;
@@ -358,7 +358,7 @@ pub fn capture_frame(
 ) {
     let mut capture = capture.single_mut().unwrap();
     if !capture.is_capturing() {
-        capture.start(mp4_ffmpeg_cli::Mp4FfmpegCliEncoder::new(format!("{}/{}.mp4", simulation_metadata.path_dir, simulation_metadata.name))
+        capture.start(mp4_ffmpeg_cli_pipe::Mp4FfmpegCliPipeEncoder::new(format!("{}/{}.mp4", simulation_metadata.path_dir, simulation_metadata.name))
             .expect("Failed to create MP4 encoder")
             .with_framerate(30)
             .with_crf(18)
