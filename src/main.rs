@@ -428,7 +428,7 @@ fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
             },
             TextColor(Color::WHITE),
             Transform::from_xyz(0.0, title_y, text_z),
-            TextLayout::new_with_justify(JustifyText::Center),
+            TextLayout::new_with_justify(Justify::Center),
             HudTitle,
         ))
         .id();
@@ -460,7 +460,7 @@ fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
             },
             TextColor(Color::WHITE),
             Transform::from_xyz(-314.0, sprite_y - ENTITIES_SIZE / 2.0, text_z),
-            TextLayout::new_with_justify(JustifyText::Right),
+            TextLayout::new_with_justify(Justify::Right),
             HudStats,
         ))
         .id();
@@ -475,7 +475,7 @@ fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
             },
             TextColor(Color::WHITE),
             Transform::from_xyz(314.0, sprite_y - ENTITIES_SIZE / 2.0, text_z),
-            TextLayout::new_with_justify(JustifyText::Left),
+            TextLayout::new_with_justify(Justify::Left),
             HudStats,
         ))
         .id();
@@ -490,7 +490,7 @@ fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
             },
             TextColor(Color::WHITE),
             Transform::from_xyz(0.0, (-250.0 - 154.0 / 2.0 - half_h + 54.0) / 2.0, text_z),
-            TextLayout::new_with_justify(JustifyText::Center),
+            TextLayout::new_with_justify(Justify::Center),
             HudDescription,
         ))
         .id();
@@ -524,7 +524,7 @@ fn spawn_debugger(mut commands: Commands, config: Res<GameConfig>) {
             -WINDOW_HEIGHT / 2.0 + DEBUG_FONT_SIZE + WALLS_THICKNESS + DEBUG_POS_PADDING,
             1.0,
         ),
-        TextLayout::new_with_justify(JustifyText::Center),
+        TextLayout::new_with_justify(Justify::Center),
         DEBUGGER,
     ));
 }

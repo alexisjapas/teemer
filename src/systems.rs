@@ -171,7 +171,7 @@ pub fn prey_movement(
 
 pub fn collision_kill_system(
     mut commands: Commands,
-    mut collision_events: EventReader<CollisionStarted>,
+    mut collision_events: MessageReader<CollisionStarted>,
     mut query: Query<(Option<&Hunter>, Option<&Species>, Option<&mut Energy>)>,
 ) {
     for event in collision_events.read() {
@@ -352,7 +352,7 @@ pub fn reproduction(
 
 /// Capture
 pub fn capture_frame(
-    mut app_exit: EventWriter<AppExit>,
+    mut app_exit: MessageWriter<AppExit>,
     mut capture_q: Query<&mut Capture>,
     mut frame_counter: Local<u32>,
     mut stop_requested: Local<bool>,
@@ -408,7 +408,7 @@ pub fn capture_frame(
     }
 }
 
-pub fn preview_frame_counter(mut frame_counter: Local<u32>, mut exit: EventWriter<AppExit>) {
+pub fn preview_frame_counter(mut frame_counter: Local<u32>, mut exit: MessageWriter<AppExit>) {
     if *frame_counter >= MAX_FRAMES_TO_CAPTURE {
         println!("Generation done. Exiting.");
         exit.write(AppExit::Success);
