@@ -1,6 +1,6 @@
 use avian2d::prelude::*;
 use bevy::{app::AppExit, diagnostic::FrameCount, prelude::*};
-use bevy_capture::{Capture, encoder::mp4_ffmpeg_cli_pipe};
+use bevy_capture::{encoder::mp4_ffmpeg_cli_pipe, Capture};
 use rand::prelude::*;
 use std::time::Instant;
 

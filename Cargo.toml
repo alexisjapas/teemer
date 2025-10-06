@@ -1,6 +1,6 @@
 [package]
 name = "teemlabs"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 
 [features]
@@ -8,7 +8,7 @@ preview = []
 
 [dependencies]
 avian2d = "0.3"
-bevy = "0.16"
+bevy = "0.17"
 bevy_capture = { git = "https://github.com/alexisjapas/bevy_capture", branch = "main", features = ["mp4_ffmpeg_cli_pipe"] }
 chrono = "0.4"
 rand = "0.9"
