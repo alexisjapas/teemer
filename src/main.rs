@@ -63,7 +63,7 @@ fn main() {
         println!("Preview mode: window + no capture.");
         app.add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                resolution: (WINDOW_WIDTH, WINDOW_HEIGHT).into(),
+                resolution: (WINDOW_WIDTH as u32, WINDOW_HEIGHT as u32).into(),
                 title: "TeemLabs".into(),
                 resizable: false,
                 ..default()
@@ -166,7 +166,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WINDOW_WIDTH)),
             ..default()
         },
-        Transform::from_xyz(0.0, (WINDOW_HEIGHT - WINDOW_WIDTH) / 2.0, 0.0),
+        Transform::from_xyz(0.0, (WINDOW_HEIGHT - WINDOW_WIDTH) / 2.0, Z_WATER),
     ));
 
     // Top wall
@@ -178,7 +178,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
         },
         RigidBody::Static,
         Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
-        Transform::from_xyz(0.0, half_h - WALLS_THICKNESS / 2.0, 0.0),
+        Transform::from_xyz(0.0, half_h - WALLS_THICKNESS / 2.0, Z_HUD),
         Restitution::new(wall_restitution),
     ));
 
@@ -191,7 +191,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
         },
         RigidBody::Static,
         Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
-        Transform::from_xyz(0.0, middle_wall_h, 0.0),
+        Transform::from_xyz(0.0, middle_wall_h, Z_HUD),
         Restitution::new(wall_restitution),
     ));
     commands.spawn((
@@ -202,7 +202,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
         },
         RigidBody::Static,
         Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
-        Transform::from_xyz(0.0, middle_wall_h - 64.0, 0.0),
+        Transform::from_xyz(0.0, middle_wall_h - 64.0, Z_HUD),
         Restitution::new(wall_restitution),
     ));
 
@@ -215,7 +215,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
         },
         RigidBody::Static,
         Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
-        Transform::from_xyz(0.0, -half_h + 54.0, 0.0),
+        Transform::from_xyz(0.0, -half_h + 54.0, Z_HUD),
         Restitution::new(wall_restitution),
     ));
     commands.spawn((
@@ -226,7 +226,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
         },
         RigidBody::Static,
         Collider::rectangle(WINDOW_WIDTH, WALLS_THICKNESS),
-        Transform::from_xyz(0.0, -half_h + WALLS_THICKNESS / 2.0, 0.0),
+        Transform::from_xyz(0.0, -half_h + WALLS_THICKNESS / 2.0, Z_HUD),
         Restitution::new(wall_restitution),
     ));
 
@@ -239,7 +239,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
         },
         RigidBody::Static,
         Collider::rectangle(WALLS_THICKNESS, WINDOW_HEIGHT),
-        Transform::from_xyz(-half_w + WALLS_THICKNESS / 2.0, 0.0, 0.0),
+        Transform::from_xyz(-half_w + WALLS_THICKNESS / 2.0, 0.0, Z_HUD),
         Restitution::new(wall_restitution),
     ));
 
@@ -252,7 +252,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
         },
         RigidBody::Static,
         Collider::rectangle(WALLS_THICKNESS, WINDOW_HEIGHT),
-        Transform::from_xyz(half_w - WALLS_THICKNESS / 2.0, 0.0, 0.0),
+        Transform::from_xyz(half_w - WALLS_THICKNESS / 2.0, 0.0, Z_HUD),
         Restitution::new(wall_restitution),
     ));
 
@@ -264,7 +264,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
             ..default()
         },
         RigidBody::Static,
-        Transform::from_xyz(-77.0, -254.0, 0.0),
+        Transform::from_xyz(-77.0, -254.0, Z_HUD),
         Restitution::new(wall_restitution),
     ));
     commands.spawn((
@@ -274,7 +274,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
             ..default()
         },
         RigidBody::Static,
-        Transform::from_xyz(77.0, -254.0, 0.0),
+        Transform::from_xyz(77.0, -254.0, Z_HUD),
         Restitution::new(wall_restitution),
     ));
     commands.spawn((
@@ -284,7 +284,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
             ..default()
         },
         RigidBody::Static,
-        Transform::from_xyz(0.0, -250.0 - 154.0 / 2.0, 0.0),
+        Transform::from_xyz(0.0, -250.0 - 154.0 / 2.0, Z_HUD),
         Restitution::new(wall_restitution),
     ));
 }
@@ -353,7 +353,7 @@ fn spawn_entities(mut commands: Commands, config: Res<GameConfig>) {
                         rng.random::<f32>() * (WINDOW_WIDTH - walls_paddings) - half_w
                             + walls_paddings,
                         rng.random::<f32>() * (WINDOW_WIDTH - walls_paddings) + middle_wall_h,
-                        0.0,
+                        Z_ENTITIES,
                     ),
                     LinearVelocity(Vec2::new(
                         params.max_speed * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),

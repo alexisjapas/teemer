@@ -13,6 +13,11 @@ pub const MAX_DURATION: f32 = 61.0;
 pub const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
 pub const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
+///Z-axis
+pub const Z_WATER: f32 = 0.0;
+pub const Z_HUD: f32 = 1.0;
+pub const Z_ENTITIES: f32 = 2.0;
+
 /// HUD
 pub const WALLS_THICKNESS: f32 = 8.0;
 pub const ENTITIES_SIZE: f32 = 64.0;

@@ -171,12 +171,12 @@ pub fn prey_movement(
 
 pub fn collision_kill_system(
     mut commands: Commands,
-    mut collision_events: MessageReader<CollisionStarted>,
+    mut collision_events: MessageReader<CollisionStart>,
     mut query: Query<(Option<&Hunter>, Option<&Species>, Option<&mut Energy>)>,
 ) {
     for event in collision_events.read() {
-        let entity1 = event.0;
-        let entity2 = event.1;
+        let entity1 = event.collider1;
+        let entity2 = event.collider2;
 
         // Get the components for both entities involved in the collision
         let Ok([mut entity1_comps, mut entity2_comps]) = query.get_many_mut([entity1, entity2])
