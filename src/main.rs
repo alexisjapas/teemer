@@ -289,7 +289,12 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     ));
 }
 
-fn spawn_entities(mut commands: Commands, config: Res<GameConfig>) {
+fn spawn_entities(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    config: Res<GameConfig>,
+) {
     let mut rng = rand::rng();
 
     let walls_paddings = WALLS_THICKNESS * 2.0 + 8.0;
@@ -301,7 +306,6 @@ fn spawn_entities(mut commands: Commands, config: Res<GameConfig>) {
         RigidBody::Dynamic,
         Restitution::new(0.2), // Bouncing restitution
         Friction::new(0.2),
-        LockedAxes::ROTATION_LOCKED,
         CollisionEventsEnabled,
         Consumable,
     );
@@ -334,6 +338,8 @@ fn spawn_entities(mut commands: Commands, config: Res<GameConfig>) {
                 }
             }
 
+            // Entity spawn
+            let circle = Circle::new(params.size);
             for _i in 0..*population {
                 let rand_speed_factor = rng.random_range(0.3..1.0);
                 let mut entity_commands = commands.spawn((
@@ -343,12 +349,14 @@ fn spawn_entities(mut commands: Commands, config: Res<GameConfig>) {
                     Energy::new(params.initial_energy, params.max_energy),
                     Size::new(params.size),
                     Speed::new(params.max_speed * rand_speed_factor),
-                    Collider::rectangle(params.size, params.size),
-                    Sprite {
-                        color: entity_color.value(),
-                        custom_size: Some(Vec2::splat(params.size)),
-                        ..default()
-                    },
+                    Collider::circle(params.size),
+                    Mesh2d(meshes.add(circle)),
+                    MeshMaterial2d(materials.add(entity_color.value())),
+                    // Sprite {
+                    //     color: entity_color.value(),
+                    //     custom_size: Some(Vec2::splat(params.size)),
+                    //     ..default()
+                    // },
                     Transform::from_xyz(
                         rng.random::<f32>() * (WINDOW_WIDTH - walls_paddings) - half_w
                             + walls_paddings,
