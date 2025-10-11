@@ -1,21 +1,21 @@
-# biome = "irr_hakur"
+biome = "irr_hakur"
 # biome = "aganandor"
 # biome = "ezerast"
 # biome = "irr_umar"
-biome = "onomora"
+# biome = "onomora"
 
 [simulation]
-version = "0.2.0 [AQUATIC_CHAOS]"
+version = "0.3.0 [AQUATIC_CHAOS]"
 lab_name = "1"
-run_id = "69"
+run_id = "70"
 
 [populations]
 ## Irr'Hakur oasis pond
-# sahlalga = 128
-# mirajun = 64
-# dunetide = 32
-# gharlox = 8
-# hakursa = 4
+sahlalga = 128
+mirajun = 64
+dunetide = 32
+gharlox = 8
+hakursa = 4
 
 ## Aganandor mountain lake
 # lodril = 1024
@@ -39,8 +39,8 @@ run_id = "69"
 # zyralith = 2
 
 ## Onomora thermal spring basin
-lyrvane = 1024
-omyra = 32
-cindralys = 16
-pyrralis = 8
-onytheron = 2
+# lyrvane = 128
+# omyra = 32
+# cindralys = 16
+# pyrralis = 8
+# onytheron = 2

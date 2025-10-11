@@ -227,6 +227,8 @@ pub fn death(mut commands: Commands, entities: Query<(Entity, &Energy), With<Spe
 
 pub fn reproduction(
     mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
     mut entities: Query<
         (
             &Name,
@@ -250,7 +252,6 @@ pub fn reproduction(
         RigidBody::Dynamic,
         Restitution::new(0.2), // Bouncing restitution
         Friction::new(0.2),
-        LockedAxes::ROTATION_LOCKED,
         CollisionEventsEnabled,
         Consumable,
     );
@@ -315,6 +316,7 @@ pub fn reproduction(
         let speed_value = speed.value();
         let size_value = size.value();
         let color_value = color.value();
+        let circle = Circle::new(size_value);
         let mut child = commands.spawn((
             entity_bundle.clone(),
             name,
@@ -328,12 +330,14 @@ pub fn reproduction(
                 (10.0 + speed_value) * (rand::random::<f32>() * 2.0 - 1.0),
                 (10.0 + speed_value) * (rand::random::<f32>() * 2.0 - 1.0),
             )),
-            Collider::rectangle(size_value, size_value),
-            Sprite {
-                color: color_value,
-                custom_size: Some(Vec2::splat(size_value)),
-                ..default()
-            },
+            Collider::circle(size_value),
+            Mesh2d(meshes.add(circle)),
+            MeshMaterial2d(materials.add(color_value)),
+            // Sprite {
+            //     color: color_value,
+            //     custom_size: Some(Vec2::splat(size_value)),
+            //     ..default()
+            // },
         ));
         if let Some(hunter_component) = hunter {
             child.insert(hunter_component);
