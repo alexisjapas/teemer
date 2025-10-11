@@ -9,21 +9,21 @@ frame_color = [0.784, 0.631, 0.396]
 [biomes.irr_hakur.species.sahlalga]
 name = "Sahlalga"
 type = "Flora"
-size = 6
+size = 5
 color = [0.133, 0.800, 0.400]
 description = "Floating mats of green filaments with gas bladders that trap sunlight on the surface. Ancient maps mark deep water by Sahlalga rings; elders say the mats hum in heat."
 
 [biomes.irr_hakur.species.mirajun]
 name = "Mirajun"
 type = "Flora"
-size = 8
+size = 6
 color = [0.000, 0.702, 0.533]
 description = "Shimmering crystalline carpet clinging to stones, refracting sun into color. Traps silt, regrows fast, and feeds grazers. Touching it was once a sign of blessing."
 
 [biomes.irr_hakur.species.dunetide]
 name = "Dunetide"
 type = "Fauna"
-size = 12
+size = 10
 color = [0.741, 0.741, 0.741]
 eats = ["mirajun", "sahlalga"]
 description = "Colonial grazer drifting over Mirajun and Sahlalga. Transparent clusters pulse slowly, flee with jet bursts, and shimmer like glass under sunlit water."
@@ -31,7 +31,7 @@ description = "Colonial grazer drifting over Mirajun and Sahlalga. Transparent c
 [biomes.irr_hakur.species.gharlox]
 name = "Gharlox"
 type = "Fauna"
-size = 20
+size = 16
 color = [1.000, 0.231, 0.188]
 eats = ["dunetide"]
 description = "Soft-bodied ambush hunter hiding in reeds. It lunges by suction to grab Dunetide, guided by touch. Hunters saw it as a symbol of patience."
@@ -39,7 +39,7 @@ description = "Soft-bodied ambush hunter hiding in reeds. It lunges by suction t
 [biomes.irr_hakur.species.hakursa]
 name = "Hakursa"
 type = "Fauna"
-size = 32
+size = 26
 color = [0.027, 0.027, 0.027]
 eats = ["gharlox", "dunetide"]
 description = "Colossal predator gliding in slow arcs through the oasis. It swallows prey whole, its deep hum felt by all. Legends call it the living tide."
@@ -55,14 +55,14 @@ frame_color = [0.88, 0.92, 0.95]
 [biomes.aganandor.species.lodril]
 name = "Lodril"
 type = "Flora"
-size = 6
+size = 5
 color = [0.2, 0.65, 0.3]
 description = "Delicate glowing threads swaying on the rocky floor, said to mirror the auroras that crown the mountain nights. Pilgrims whisper that the lake 'breathes' through them."
 
 [biomes.aganandor.species.vanyr]
 name = "Vanyr"
 type = "Fauna"
-size = 12
+size = 10
 color = [0.65, 0.85, 0.90]
 eats = ["lodril"]
 description = "Streamlined grazers gliding in coordinated arcs. The old texts of Aganandor claim their shimmering formations sketch divine runes upon the lake's surface."
@@ -70,7 +70,7 @@ description = "Streamlined grazers gliding in coordinated arcs. The old texts of
 [biomes.aganandor.species.thalvyrn]
 name = "Thalvyrn"
 type = "Fauna"
-size = 18
+size = 14
 color = [0.8, 0.2, 0.2]
 eats = ["vanyr"]
 description = "Swift, spectral hunters, their translucent bodies flashing red when they strike. Local myths call them the 'blades of the mountain', born from ancient sacrifices in the high passes."
@@ -78,7 +78,7 @@ description = "Swift, spectral hunters, their translucent bodies flashing red wh
 [biomes.aganandor.species.myrrkul]
 name = "Myrrkul"
 type = "Fauna"
-size = 30
+size = 24
 color = [0.05, 0.08, 0.15]
 eats = ["thalvyrn", "vanyr"]
 description = "An immense, slow shadow that rarely surfaces. Legends tell of Myrrkul as a slumbering sentinel, its gaze alone enough to summon avalanches when the balance is disturbed."
@@ -94,21 +94,21 @@ frame_color = [0.12, 0.12, 0.12]
 [biomes.ezerast.species.qyrsel]
 name = "Qyrsel"
 type = "Flora"
-size = 6
+size = 5
 color = [0.090, 0.682, 0.220]
 description = "A filamentous algal organism that binds together into sprawling mats across saline sediments. Its thin green threads absorb light efficiently, creating micro-forests that shelter other life. Qyrsel thrives in high-salinity zones where few other organisms can survive."
 
 [biomes.ezerast.species.ozyrae]
 name = "Ozyrae"
 type = "Flora"
-size = 8
+size = 6
 color = [0.090, 0.800, 0.650]
 description = "A free-floating phytoplankton with translucent crystalline shells that shimmer faintly under light. Ozyrae forms loose drifting colonies, providing both food and micro-habitats. Its saline-resistant walls protect it from osmotic collapse in harsh brine."
 
 [biomes.ezerast.species.veytris]
 name = "Veytris"
 type = "Fauna"
-size = 10
+size = 8
 color = [1.000, 0.650, 0.000]
 eats = ["ozyrae", "qyrsel"]
 description = "A swift grazer resembling a translucent crustacean shard. Veytris filter-feeds directly from Qyrsel mats, scraping the filaments into digestible fragments. Often traveling in swarms, it creates rippling waves of movement through the brackish water."
@@ -116,7 +116,7 @@ description = "A swift grazer resembling a translucent crustacean shard. Veytris
 [biomes.ezerast.species.brisqal]
 name = "Brisqal"
 type = "Fauna"
-size = 12
+size = 10
 color = [1.000, 0.250, 0.250]
 eats = ["ozyrae", "qyrsel"]
 description = "An amoeboid organism with a shifting, coral-hued body. Brisqal is a cunning grazer of Ozyrae colonies, using its pseudopodia to engulf cells one by one. Though small, its speed and adaptability make it difficult for larger hunters to capture."
@@ -124,7 +124,7 @@ description = "An amoeboid organism with a shifting, coral-hued body. Brisqal is
 [biomes.ezerast.species.chalyth]
 name = "Chalyth"
 type = "Fauna"
-size = 18
+size = 14
 color = [0.780, 0.000, 0.180]
 eats = ["brisqal", "veytris"]
 description = "A formidable predator armed with rigid spines and pulsating vacuoles. Chalyth stalks Veytris swarms and Brisqal clusters, capturing them with sudden suction bursts. Its reddish hue signals aggression and dominance in the salt marsh microcosm. Solitary, but feared by all lesser creatures."
@@ -132,7 +132,7 @@ description = "A formidable predator armed with rigid spines and pulsating vacuo
 [biomes.ezerast.species.vorqualis]
 name = "Vorqualis"
 type = "Fauna"
-size = 26
+size = 21
 color = [0.278, 0.243, 0.478]
 eats = ["brisqal", "chalyth"]
 description = "The silent apex of the Ezerast marsh. Vorqualis drifts slowly, its dark indigo mass almost blending into shadowy depths. It engulfs Chalyth predators whole, but also opportunistically devours Brisqal when swarms cross its path. Despite its lethargic movement, it is nearly impossible to escape once drawn into its engulfing folds. Its presence defines the top of the food chain in this biome."
@@ -148,14 +148,14 @@ frame_color = [0.18, 0.35, 0.12]
 [biomes.irr_umar.species.vyrmosa]
 name = "Vyrmosa"
 type = "Flora"
-size = 6
+size = 5
 color = [0.160, 0.690, 0.250]
 description = "Dense, filamentous plant forming floating mats and root-like tangles among submerged debris. Vyrmosa thrives in tannin-rich, low-oxygen waters, providing both shelter and the primary energy source for the swamp. Its green filaments shimmer faintly under dim light, harboring micro-fauna."
 
 [biomes.irr_umar.species.qirval]
 name = "Qirval"
 type = "Fauna"
-size = 8
+size = 6
 color = [0.925, 0.803, 0.365]
 eats = ["vyrmosa"]
 description = "Small, nimble grazer that feeds on Vyrmosa filaments. Qirval moves in swarms, creating rippling currents and shaping the spatial distribution of plant mats. Its golden-yellow segmented body is reinforced to survive murky, detritus-laden waters."
@@ -163,7 +163,7 @@ description = "Small, nimble grazer that feeds on Vyrmosa filaments. Qirval move
 [biomes.irr_umar.species.lorynth]
 name = "Lorynth"
 type = "Fauna"
-size = 12
+size = 10
 color = [0.678, 0.325, 0.298]
 eats = ["qirval"]
 description = "Agile predator of Qirval, Lorynth darts along submerged roots and detritus with short bursts of speed. Its reddish-brown armored body helps it blend into the dark, tannin-stained water."
@@ -171,7 +171,7 @@ description = "Agile predator of Qirval, Lorynth darts along submerged roots and
 [biomes.irr_umar.species.dravym]
 name = "Dravym"
 type = "Fauna"
-size = 18
+size = 14
 color = [0.432, 0.357, 0.568]
 eats = ["lorynth", "qirval"]
 description = "Elongated, serpentine super predator that hunts both Lorynth and Qirval. Dravym moves deliberately, wrapping around prey before crushing or engulfing it. Its violet-blue body is semi-translucent, reflecting the dim swamp light."
@@ -179,7 +179,7 @@ description = "Elongated, serpentine super predator that hunts both Lorynth and 
 [biomes.irr_umar.species.zyralith]
 name = "Zyralith"
 type = "Fauna"
-size = 24
+size = 19
 color = [0.138, 0.125, 0.245]
 eats = ["dravym", "lorynth"]
 description = "Apex predator of Irr'Umar, inhabiting the deepest, most shaded areas. Zyralith ignores Qirval, allowing primary grazers to flourish, but dominates all higher trophic levels. Its massive indigo-black body blends seamlessly into the swamp shadows, silently controlling the ecosystem."
@@ -195,14 +195,14 @@ frame_color = [0.623, 0.184, 0.141]
 [biomes.onomora.species.lyrvane]
 name = "Lyrvane"
 type = "Flora"
-size = 6
+size = 5
 color = [0.894, 0.471, 0.086]
 description = "Heat-adapted phototroph forming dense, amber-orange mats on mineral surfaces near vents. Lyrvane absorbs both sunlight and geothermal energy, stabilizing sediments and providing the primary energy source in the basin. Its glimmering filaments create micro-habitats for smaller organisms."
 
 [biomes.onomora.species.omyra]
 name = "Omyra"
 type = "Fauna"
-size = 10
+size = 8
 color = [0.961, 0.824, 0.247]
 eats = ["lyrvane"]
 description = "A nimble, golden-hued grazer with crystalline armor resistant to scalding currents. Omyra scrapes Lyrvane mats for nutrients and often moves in cohesive swarms, generating shimmering ripples across the thermal waters."
@@ -210,7 +210,7 @@ description = "A nimble, golden-hued grazer with crystalline armor resistant to 
 [biomes.onomora.species.cindralys]
 name = "Cindralys"
 type = "Fauna"
-size = 14
+size = 11
 color = [0.780, 0.180, 0.149]
 eats = ["omyra"]
 description = "Swift, fiery-red predator hunting Omyra. Cindralys darts explosively through the hot currents, impaling swarms before retreating to cooler microzones. Its segmented body and heat-resistant exoskeleton make it a dominant hunter in turbulent thermal waters."
@@ -218,7 +218,7 @@ description = "Swift, fiery-red predator hunting Omyra. Cindralys darts explosiv
 [biomes.onomora.species.pyrralis]
 name = "Pyrralis"
 type = "Fauna"
-size = 20
+size = 16
 color = [0.396, 0.318, 0.647]
 eats = ["cindralys", "omyra"]
 description = "Serpentine super predator that coils around Cindralys or Omyra. Pyrralis uses ambush tactics in geothermal eddies, striking with calculated precision. Its violet-blue iridescence shimmers like a spectral heat wave in the mineral-rich waters."
@@ -226,7 +226,7 @@ description = "Serpentine super predator that coils around Cindralys or Omyra. P
 [biomes.onomora.species.onytheron]
 name = "Onytheron"
 type = "Fauna"
-size = 26
+size = 21
 color = [0.090, 0.113, 0.224]
 eats = ["pyrralis", "cindralys"]
 description = "Apex predator inhabiting the hottest, chemically extreme zones near vent cores. Onytheron consumes Pyrralis and Cindralys, ignoring Omyra. Its colossal indigo-black body blends seamlessly with mineral plumes, silently defining the basin's food chain."

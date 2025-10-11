@@ -48,6 +48,7 @@ fn main() {
                 reproduction,
                 death,
                 update_hud,
+                visualize_raycast,
             )
                 .chain(),
         )
@@ -342,6 +343,8 @@ fn spawn_entities(
             let circle = Circle::new(params.size);
             for _i in 0..*population {
                 let rand_speed_factor = rng.random_range(0.3..1.0);
+                let angle = rng.random_range(0.0..std::f32::consts::TAU);
+                let rotation = Quat::from_rotation_z(angle);
                 let mut entity_commands = commands.spawn((
                     entity_bundle.clone(),
                     entity_color.clone(),
@@ -352,17 +355,13 @@ fn spawn_entities(
                     Collider::circle(params.size),
                     Mesh2d(meshes.add(circle)),
                     MeshMaterial2d(materials.add(entity_color.value())),
-                    // Sprite {
-                    //     color: entity_color.value(),
-                    //     custom_size: Some(Vec2::splat(params.size)),
-                    //     ..default()
-                    // },
                     Transform::from_xyz(
                         rng.random::<f32>() * (WINDOW_WIDTH - walls_paddings) - half_w
                             + walls_paddings,
                         rng.random::<f32>() * (WINDOW_WIDTH - walls_paddings) + middle_wall_h,
                         Z_ENTITIES,
-                    ),
+                    )
+                    .with_rotation(rotation),
                     LinearVelocity(Vec2::new(
                         params.max_speed * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                         params.max_speed * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
@@ -399,6 +398,13 @@ fn spawn_entities(
                         if params.is_active_mover {
                             entity_commands.insert(ActiveMover);
                         }
+
+                        // Add vision
+                        entity_commands.insert(Vision::new(params.detection_range, 1, 0.0));
+                        entity_commands.insert(
+                            RayCaster::new(Vec2::ZERO, Dir2::X)
+                                .with_max_distance(params.detection_range),
+                        );
                     }
                     _ => {
                         entity_commands.insert(Name::new("Unknown"));

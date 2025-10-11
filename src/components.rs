@@ -78,6 +78,22 @@ impl Species {
 }
 
 #[derive(Component, Clone)]
+pub struct Vision {
+    pub detection_range: f32,
+    pub nb_rays: u32,
+    pub field_of_view: f32
+}
+impl Vision {
+    pub fn new(detection_range: f32, nb_rays: u32, field_of_view: f32) -> Self {
+        Self {
+            detection_range,
+            nb_rays,
+            field_of_view,
+        }
+    }
+}
+
+#[derive(Component, Clone)]
 pub struct Hunter {
     pub hunts: Vec<Species>,
     pub detection_range: f32,
@@ -233,3 +249,10 @@ pub struct GameConfig {
 /// DEBUG
 #[derive(Component)]
 pub struct DEBUGGER;
+
+/// Rendering
+#[derive(Component)]
+pub struct RaycastVisualization;
+
+#[derive(Component)]
+pub struct HitPointVisualization;
