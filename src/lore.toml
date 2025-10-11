@@ -11,14 +11,14 @@ name = "Sahlalga"
 type = "Flora"
 size = 6
 color = [0.133, 0.800, 0.400]
-description = "Sahlalga grows in buoyant mats across the pond's surface. Its body is a sheet of interwoven filaments with many simple light-harvesting plates (analogous to chloroplasts) arranged in layered membranes to catch harsh, angled desert light. The filaments form small gas bladders that keep the mat near the surface so it receives steady illumination at midday. Ancient oasis maps show Sahlalga rings as markers of deep water; elders say the mats hum in heat. Ecologically it is a slow but resilient energy accumulator and the dominant surface producer."
+description = "Floating mats of green filaments with gas bladders that trap sunlight on the surface. Ancient maps mark deep water by Sahlalga rings; elders say the mats hum in heat."
 
 [biomes.irr_hakur.species.mirajun]
 name = "Mirajun"
 type = "Flora"
 size = 8
 color = [0.000, 0.702, 0.533]
-description = "Mirajun is a shimmering carpet that clings to shallow stones and the pond floor. Made of densely packed, crystalline cells, it scatters and refracts incoming sun so that even diffuse light is usable. Its thin mucilaginous layer traps silt and stabilizes the substrate. Mirajun is the fast-regenerating primary producer of the shallow margins and the first food for grazing consumers. Petroglyphs around Irr'Hakur depict hands touching a shimmering Mirajun patch as a sign of blessing."
+description = "Shimmering crystalline carpet clinging to stones, refracting sun into color. Traps silt, regrows fast, and feeds grazers. Touching it was once a sign of blessing."
 
 [biomes.irr_hakur.species.dunetide]
 name = "Dunetide"
@@ -26,7 +26,7 @@ type = "Fauna"
 size = 12
 color = [0.741, 0.741, 0.741]
 eats = ["mirajun", "sahlalga"]
-description = "Dunetide is a compact, colonial grazer that swims in slow pulses across Mirajun and Sahlalga. Each animal is a modular cluster of ciliated units with a simple mouth-like feeding groove that scrapes and ingests biofilm. It senses chemical cues with distributed receptor cells and performs rapid jet-like escapes by coordinated ciliary reversals. Tribes call them \"glass-paddles\" for the way sunlight fractures through their bodies when they flee. Dunetide is the main mobile plant consumer and shelters in deeper water columns when predators are near."
+description = "Colonial grazer drifting over Mirajun and Sahlalga. Transparent clusters pulse slowly, flee with jet bursts, and shimmer like glass under sunlit water."
 
 [biomes.irr_hakur.species.gharlox]
 name = "Gharlox"
@@ -34,7 +34,7 @@ type = "Fauna"
 size = 20
 color = [1.000, 0.231, 0.188]
 eats = ["dunetide"]
-description = "Gharlox is a low-profile, soft-bodied hunter that patrols reedbeds and submerged stone. Morphologically simple, it has a tubular, suction mouth and rows of mechanosensory papillae; propulsion is by muscular contractions and flicking flaps rather than fins. Gharlox lies in wait in shadow, then creates a sudden suction to pull nearby Dunetide from their grazing patches. Its nervous system is a compact nerve net giving fast local reflexes but limited long-range planning, so it abandons kills when larger scents or vibrations (Hakursa) approach. Hunters carved the Gharlox silhouette as a symbol of patience."
+description = "Soft-bodied ambush hunter hiding in reeds. It lunges by suction to grab Dunetide, guided by touch. Hunters saw it as a symbol of patience."
 
 [biomes.irr_hakur.species.hakursa]
 name = "Hakursa"
@@ -42,7 +42,7 @@ type = "Fauna"
 size = 32
 color = [0.027, 0.027, 0.027]
 eats = ["gharlox", "dunetide"]
-description = "The Hakursa is the largest organism in the Irr'Hakur oasis, a colossal, mass of segmented muscle and primitive sensory ridges running the length of its body. The Hakursa patrols the pond continuously, gliding through the water in slow, deliberate arcs. When it detects vibrations from Dunetide swarms or the darting pulses of a Gharlox, it accelerates in a sudden but sustained pursuit, sweeping its flexible jaws sideways to engulf its target whole. Its presence is constant, every creature in the oasis adjusts its behavior when the low-frequency hum of its movement passes through the water. Desert myths call it 'the living tide', believing the pond itself retreats when a Hakursa dies."
+description = "Colossal predator gliding in slow arcs through the oasis. It swallows prey whole, its deep hum felt by all. Legends call it the living tide."
 
 [biomes.aganandor]
 name = "Aganandor"

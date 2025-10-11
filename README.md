@@ -1,7 +1,6 @@
 # Teem Engine by TeemLabs
 ## Roadmap
 ### 2025-11-02
-- Rework lore
 - Improve entities parameters
   - Per species reactivity
   - Handle per entity rand std
