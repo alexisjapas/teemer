@@ -87,38 +87,38 @@ pub fn visualize_raycast(
                     if let Some(ray_owner_hunter) = ray_owner_hunter {
                         if ray_owner_hunter.hunts.contains(hit_species) {
                             // Hit entity is prey for ray owner -> Green
-                            Color::srgba(0.0, 1.0, 0.0, 0.3)
+                            Color::srgba(0.0, 1.0, 0.0, 0.04)
                         } else if let Some(hit_hunter) = hit_hunter_opt {
                             // Check if ray owner is prey for the hit entity
                             if hit_hunter.hunts.contains(ray_owner_species) {
                                 // Hit entity is predator for ray owner -> Red
-                                Color::srgba(1.0, 0.0, 0.0, 0.3)
+                                Color::srgba(1.0, 0.0, 0.0, 0.04)
                             } else {
                                 // Hit entity is neither prey nor predator -> Blue
-                                Color::srgba(0.0, 0.0, 1.0, 0.3)
+                                Color::srgba(0.0, 0.0, 1.0, 0.04)
                             }
                         } else {
                             // Hit entity is not a hunter, not in prey list -> Blue
-                            Color::srgba(0.0, 0.0, 1.0, 0.3)
+                            Color::srgba(0.0, 0.0, 1.0, 0.04)
                         }
                     } else {
                         // Ray owner is not a hunter, check if hit entity is a predator
                         if let Some(hit_hunter) = hit_hunter_opt {
                             if hit_hunter.hunts.contains(ray_owner_species) {
                                 // Hit entity is predator for ray owner -> Red
-                                Color::srgba(1.0, 0.0, 0.0, 0.3)
+                                Color::srgba(1.0, 0.0, 0.0, 0.04)
                             } else {
                                 // Hit entity doesn't hunt ray owner -> Blue
-                                Color::srgba(0.0, 0.0, 1.0, 0.3)
+                                Color::srgba(0.0, 0.0, 1.0, 0.04)
                             }
                         } else {
                             // Hit entity is not a hunter -> Blue
-                            Color::srgba(0.0, 0.0, 1.0, 0.3)
+                            Color::srgba(0.0, 0.0, 1.0, 0.04)
                         }
                     }
                 } else {
                     // Hit entity has no species/hunter info -> Blue
-                    Color::srgba(0.0, 0.0, 1.0, 0.3)
+                    Color::srgba(0.0, 0.0, 1.0, 0.04)
                 };
 
                 (hit.point, color)
@@ -126,7 +126,7 @@ pub fn visualize_raycast(
                 // No hit -> Gray
                 (
                     origin + direction * max_distance,
-                    Color::srgba(0.5, 0.5, 0.5, 0.3),
+                    Color::srgba(0.5, 0.5, 0.5, 0.04),
                 )
             };
 
