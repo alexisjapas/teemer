@@ -11,11 +11,11 @@ run_id = "70"
 
 [populations]
 ## Irr'Hakur oasis pond
-sahlalga = 128
-mirajun = 64
+sahlalga = 256
+mirajun = 256
 dunetide = 32
 gharlox = 8
-hakursa = 4
+hakursa = 2
 
 ## Aganandor mountain lake
 # lodril = 1024

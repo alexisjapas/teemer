@@ -1,6 +1,6 @@
 use avian2d::prelude::*;
 use bevy::{app::AppExit, diagnostic::FrameCount, prelude::*};
-use bevy_capture::{Capture, encoder::mp4_ffmpeg_cli_pipe};
+use bevy_capture::{encoder::mp4_ffmpeg_cli_pipe, Capture};
 use std::time::Instant;
 
 use crate::components::*;
@@ -60,7 +60,7 @@ pub fn update_debugger(
 
 pub fn visualize_raycast(
     mut commands: Commands,
-    ray_query: Query<(&RayCaster, &RayHits, Option<&Hunter>, &Species)>,
+    ray_query: Query<(&VisionResults, Option<&Hunter>, &Species)>,
     old_viz: Query<Entity, Or<(With<RaycastVisualization>, With<HitPointVisualization>)>>,
     entity_query: Query<(&Species, Option<&Hunter>)>,
 ) {
@@ -70,87 +70,83 @@ pub fn visualize_raycast(
     }
 
     // Draw new visualizations
-    for (ray, hits, ray_owner_hunter, ray_owner_species) in &ray_query {
-        let origin = ray.global_origin();
-        let direction = *ray.global_direction();
-        let max_distance = ray.max_distance;
+    for (results, ray_owner_hunter, ray_owner_species) in &ray_query {
+        for ray in &results.rays {
+            let origin = ray.origin;
+            let direction = ray.direction;
+            let max_distance = ray.max_distance;
 
-        // Determine the end point and color based on what we hit
-        let (end_point, line_color) = if let Some(hit) = hits.iter_sorted().next() {
-            let hit_entity = hit.entity;
+            // Determine the end point and color based on what we hit
+            let (end_point, line_color) = if let Some(hit) = &ray.hit {
+                let hit_entity = hit.entity;
 
-            // Determine color based on the relationship between ray owner and hit entity
-            let color = if let Ok((hit_species, hit_hunter_opt)) = entity_query.get(hit_entity) {
-                // Check if hit entity is prey for the ray owner
-                if let Some(ray_owner_hunter) = ray_owner_hunter {
-                    if ray_owner_hunter.hunts.contains(hit_species) {
-                        // Hit entity is prey for ray owner -> Vert
-                        Color::srgba(0.0, 1.0, 0.0, 1.0)
-                    } else if let Some(hit_hunter) = hit_hunter_opt {
-                        // Check if ray owner is prey for the hit entity
-                        if hit_hunter.hunts.contains(ray_owner_species) {
-                            // Hit entity is predator for ray owner -> Rouge
-                            Color::srgba(1.0, 0.0, 0.0, 1.0)
+                // Determine color based on the relationship between ray owner and hit entity
+                let color = if let Ok((hit_species, hit_hunter_opt)) = entity_query.get(hit_entity)
+                {
+                    // Check if hit entity is prey for the ray owner
+                    if let Some(ray_owner_hunter) = ray_owner_hunter {
+                        if ray_owner_hunter.hunts.contains(hit_species) {
+                            // Hit entity is prey for ray owner -> Green
+                            Color::srgba(0.0, 1.0, 0.0, 0.3)
+                        } else if let Some(hit_hunter) = hit_hunter_opt {
+                            // Check if ray owner is prey for the hit entity
+                            if hit_hunter.hunts.contains(ray_owner_species) {
+                                // Hit entity is predator for ray owner -> Red
+                                Color::srgba(1.0, 0.0, 0.0, 0.3)
+                            } else {
+                                // Hit entity is neither prey nor predator -> Blue
+                                Color::srgba(0.0, 0.0, 1.0, 0.3)
+                            }
                         } else {
-                            // Hit entity is neither prey nor predator -> Bleu
-                            Color::srgba(0.0, 0.0, 1.0, 1.0)
+                            // Hit entity is not a hunter, not in prey list -> Blue
+                            Color::srgba(0.0, 0.0, 1.0, 0.3)
                         }
                     } else {
-                        // Hit entity is not a hunter, not in prey list -> Bleu
-                        Color::srgba(0.0, 0.0, 1.0, 1.0)
+                        // Ray owner is not a hunter, check if hit entity is a predator
+                        if let Some(hit_hunter) = hit_hunter_opt {
+                            if hit_hunter.hunts.contains(ray_owner_species) {
+                                // Hit entity is predator for ray owner -> Red
+                                Color::srgba(1.0, 0.0, 0.0, 0.3)
+                            } else {
+                                // Hit entity doesn't hunt ray owner -> Blue
+                                Color::srgba(0.0, 0.0, 1.0, 0.3)
+                            }
+                        } else {
+                            // Hit entity is not a hunter -> Blue
+                            Color::srgba(0.0, 0.0, 1.0, 0.3)
+                        }
                     }
                 } else {
-                    // Ray owner is not a hunter, check if hit entity is a predator
-                    if let Some(hit_hunter) = hit_hunter_opt {
-                        if hit_hunter.hunts.contains(ray_owner_species) {
-                            // Hit entity is predator for ray owner -> Rouge
-                            Color::srgba(1.0, 0.0, 0.0, 1.0)
-                        } else {
-                            // Hit entity doesn't hunt ray owner -> Bleu
-                            Color::srgba(0.0, 0.0, 1.0, 1.0)
-                        }
-                    } else {
-                        // Hit entity is not a hunter -> Bleu
-                        Color::srgba(0.0, 0.0, 1.0, 1.0)
-                    }
-                }
+                    // Hit entity has no species/hunter info -> Blue
+                    Color::srgba(0.0, 0.0, 1.0, 0.3)
+                };
+
+                (hit.point, color)
             } else {
-                // Hit entity has no species/hunter info -> Bleu
-                Color::srgba(0.0, 0.0, 1.0, 1.0)
+                // No hit -> Gray
+                (
+                    origin + direction * max_distance,
+                    Color::srgba(0.5, 0.5, 0.5, 0.3),
+                )
             };
 
-            (origin + direction * hit.distance, color)
-        } else {
-            // Pas de hit -> Gris
-            (
-                origin + direction * max_distance,
-                Color::srgba(0.5, 0.5, 0.5, 1.0),
-            )
-        };
+            // Calculate line properties
+            let length = (end_point - origin).length();
+            let angle = direction.y.atan2(direction.x);
+            let midpoint = (origin + end_point) / 2.0;
 
-        // Calculate line properties
-        let length = (end_point - origin).length();
-        let angle = direction.y.atan2(direction.x);
-        let midpoint = (origin + end_point) / 2.0;
-
-        // Spawn the ray line
-        commands.spawn((
-            Sprite {
-                color: line_color,
-                custom_size: Some(Vec2::new(length, 2.0)),
-                ..default()
-            },
-            Transform::from_translation(midpoint.extend(2.0))
-                .with_rotation(Quat::from_rotation_z(angle)),
-            RaycastVisualization,
-        ));
-
-        // bevy::log::info!(
-        //     "\nRaycast\n\tOrigin: {}\n\tDirection: {}\n\tHits: {}",
-        //     ray.origin,
-        //     ray.direction,
-        //     hit_occurred
-        // )
+            // Spawn the ray line
+            commands.spawn((
+                Sprite {
+                    color: line_color,
+                    custom_size: Some(Vec2::new(length, 2.0)),
+                    ..default()
+                },
+                Transform::from_translation(midpoint.extend(2.0))
+                    .with_rotation(Quat::from_rotation_z(angle)),
+                RaycastVisualization,
+            ));
+        }
     }
 }
 

@@ -1,5 +1,5 @@
-mod simulation;
 mod rendering;
+mod simulation;
 
-pub use simulation::*;
 pub use rendering::*;
+pub use simulation::*;

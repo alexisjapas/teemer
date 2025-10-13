@@ -41,6 +41,7 @@ fn main() {
                 idle_energy,
                 plant_regeneration_system,
                 assign_targets,
+                update_vision_system,
                 predator_movement,
                 prey_movement,
                 movement_energy,
@@ -399,12 +400,13 @@ fn spawn_entities(
                             entity_commands.insert(ActiveMover);
                         }
 
-                        // Add vision
-                        entity_commands.insert(Vision::new(params.detection_range, 1, 0.0));
-                        entity_commands.insert(
-                            RayCaster::new(Vec2::ZERO, Dir2::X)
-                                .with_max_distance(params.detection_range),
-                        );
+                        // Add vision with 3 rays at ±30°
+                        entity_commands.insert(Vision::new(
+                            params.detection_range,
+                            99,
+                            60.0_f32.to_radians(),
+                        ));
+                        entity_commands.insert(VisionResults::default());
                     }
                     _ => {
                         entity_commands.insert(Name::new("Unknown"));

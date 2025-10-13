@@ -5,6 +5,7 @@ use rand::prelude::*;
 use crate::components::*;
 use crate::config::*;
 
+/// Energy
 pub fn idle_energy(mut entities: Query<&mut Energy, With<Species>>) {
     let mut rng = rand::rng();
     for mut energy in entities.iter_mut() {
@@ -34,6 +35,55 @@ pub fn movement_energy(
             * MOVEMENT_ENERGY_COST_FACTOR
             * FIXED_TIME_STEP;
         energy.lose(energy_cost);
+    }
+}
+
+/// Decision & movement
+pub fn update_vision_system(
+    mut query: Query<(Entity, &Transform, &Vision, &mut VisionResults)>,
+    spatial_query: SpatialQuery,
+) {
+    for (entity, transform, vision, mut results) in &mut query {
+        results.rays.clear();
+
+        let start_angle = -vision.field_of_view / 2.0;
+        let angle_step = if vision.nb_rays > 1 {
+            vision.field_of_view / (vision.nb_rays - 1) as f32
+        } else {
+            0.0
+        };
+
+        let origin = transform.translation.truncate();
+        let rotation = transform.rotation.to_euler(EulerRot::XYZ).2;
+
+        for i in 0..vision.nb_rays {
+            let angle = start_angle + angle_step * i as f32;
+            let local_direction = Vec2::new(angle.cos(), angle.sin());
+            let world_direction = local_direction.rotate(Vec2::from_angle(rotation));
+
+            let direction = Dir2::new(world_direction).unwrap_or(Dir2::X);
+
+            let hit_info = spatial_query
+                .cast_ray(
+                    origin,
+                    direction,
+                    vision.detection_range,
+                    true,
+                    &SpatialQueryFilter::from_excluded_entities([entity]), // Don't hit self
+                )
+                .map(|hit| RayHitInfo {
+                    entity: hit.entity,
+                    distance: hit.distance,
+                    point: origin + world_direction * hit.distance,
+                });
+
+            results.rays.push(RayResult {
+                origin,
+                direction: world_direction,
+                max_distance: vision.detection_range,
+                hit: hit_info,
+            });
+        }
     }
 }
 
@@ -165,6 +215,7 @@ pub fn prey_movement(
     }
 }
 
+/// Life & death
 pub fn collision_kill_system(
     mut commands: Commands,
     mut collision_events: MessageReader<CollisionStart>,
@@ -347,9 +398,8 @@ pub fn reproduction(
             child.insert(active_mover_component);
         }
         if let Some(vision_component) = vision {
-            let detection_range = vision_component.detection_range;
             child.insert(vision_component);
-            child.insert(RayCaster::new(Vec2::ZERO, Dir2::X).with_max_distance(detection_range));
+            child.insert(VisionResults::default());
         }
     }
 }

@@ -81,7 +81,7 @@ impl Species {
 pub struct Vision {
     pub detection_range: f32,
     pub nb_rays: u32,
-    pub field_of_view: f32
+    pub field_of_view: f32,
 }
 impl Vision {
     pub fn new(detection_range: f32, nb_rays: u32, field_of_view: f32) -> Self {
@@ -91,6 +91,24 @@ impl Vision {
             field_of_view,
         }
     }
+}
+
+#[derive(Component, Default)]
+pub struct VisionResults {
+    pub rays: Vec<RayResult>,
+}
+
+pub struct RayResult {
+    pub origin: Vec2,
+    pub direction: Vec2,
+    pub max_distance: f32,
+    pub hit: Option<RayHitInfo>,
+}
+
+pub struct RayHitInfo {
+    pub entity: Entity,
+    pub distance: f32,
+    pub point: Vec2,
 }
 
 #[derive(Component, Clone)]
