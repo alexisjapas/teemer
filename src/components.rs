@@ -77,6 +77,7 @@ impl Species {
     }
 }
 
+/// Actions
 #[derive(Component, Clone)]
 pub struct Vision {
     pub detection_range: f32,
@@ -98,6 +99,7 @@ pub struct VisionResults {
     pub rays: Vec<RayResult>,
 }
 
+#[derive(Clone)]
 pub struct RayResult {
     pub origin: Vec2,
     pub direction: Vec2,
@@ -105,39 +107,27 @@ pub struct RayResult {
     pub hit: Option<RayHitInfo>,
 }
 
+#[derive(Clone)]
 pub struct RayHitInfo {
     pub entity: Entity,
     pub distance: f32,
     pub point: Vec2,
 }
 
+#[derive(Component, Default)]
+pub struct MovementIntent {
+    pub desired_direction: Vec2,
+    pub desired_force: Vec2,
+}
+
+/// Traits
 #[derive(Component, Clone)]
 pub struct Hunter {
     pub hunts: Vec<Species>,
-    pub detection_range: f32,
-    pub current_target: Option<Entity>,
 }
 impl Hunter {
-    pub fn new(hunts: Vec<Species>, detection_range: f32) -> Self {
-        Self {
-            hunts,
-            detection_range,
-            current_target: None,
-        }
-    }
-}
-
-#[derive(Component, Clone)]
-pub struct Prey {
-    pub detection_range: f32,
-    pub current_threat: Option<Entity>,
-}
-impl Prey {
-    pub fn new(detection_range: f32) -> Self {
-        Self {
-            detection_range,
-            current_threat: None,
-        }
+    pub fn new(hunts: Vec<Species>) -> Self {
+        Self { hunts }
     }
 }
 

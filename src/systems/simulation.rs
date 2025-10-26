@@ -87,130 +87,120 @@ pub fn update_vision_system(
     }
 }
 
-pub fn assign_targets(
-    mut predators: Query<(Entity, &mut Hunter, &Transform, &Species), With<Hunter>>,
-    potential_prey: Query<(Entity, &Transform, &Species), (With<Species>, With<Consumable>)>,
+pub fn vision_analysis_system(
+    mut entity_query: Query<(
+        &VisionResults,
+        &Species,
+        Option<&Hunter>,
+        &mut MovementIntent,
+    )>,
+    obstacles_query: Query<(&Species, Option<&Hunter>)>,
 ) {
-    for (_, mut predator, predator_transform, _) in predators.iter_mut() {
-        // Clear target if out of range or dead
-        if let Some(current_target) = predator.current_target {
-            if let Ok((_, target_transform, _)) = potential_prey.get(current_target) {
-                let distance = predator_transform
-                    .translation
-                    .distance(target_transform.translation);
-                if distance > predator.detection_range {
-                    predator.current_target = None;
-                }
-            } else {
-                predator.current_target = None;
+    for (vision_result, species, hunter, mut movement_intent) in entity_query.iter_mut() {
+        let mut direction = Vec2::ZERO;
+        for ray in &vision_result.rays {
+            if let Some(hit) = &ray.hit {
+                let hit_entity = hit.entity;
+
+                let weight =
+                    if let Ok((hit_species, hit_hunter_opt)) = obstacles_query.get(hit_entity) {
+                        if let Some(ray_owner_hunter) = hunter {
+                            if ray_owner_hunter.hunts.contains(hit_species) {
+                                // Hit entity is prey for ray owner -> Green
+                                3.0
+                            } else if let Some(hit_hunter) = hit_hunter_opt {
+                                // Check if ray owner is prey for the hit entity
+                                if hit_hunter.hunts.contains(species) {
+                                    // Hit entity is predator for ray owner
+                                    -5.0
+                                } else {
+                                    // Hit entity is neither prey nor predator for ray owner
+                                    -0.0
+                                }
+                            } else {
+                                // Hit entity is not a hunter
+                                -0.0
+                            }
+                        } else {
+                            // Ray owner is not a hunter, check if hit entity is a predator
+                            if let Some(hit_hunter) = hit_hunter_opt {
+                                if hit_hunter.hunts.contains(species) {
+                                    // Hit entity is predator for ray owner
+                                    -5.0
+                                } else {
+                                    // Hit entity doesn't hunt ray owner
+                                    -0.0
+                                }
+                            } else {
+                                // Hit entity is not a hunter
+                                -0.0
+                            }
+                        }
+                    } else {
+                        // Hit entity has no species/hunter info
+                        -0.0
+                    };
+
+                let dist_factor = 1.0 - (hit.distance / ray.max_distance);
+                direction += ray.direction.normalize() * weight * dist_factor;
             }
         }
 
-        // Find new target
-        if predator.current_target.is_none() {
-            let mut closest_distance = predator.detection_range;
-            let mut closest_prey = None;
-
-            for (prey_entity, prey_transform, prey_species) in potential_prey.iter() {
-                if predator.hunts.contains(prey_species) {
-                    let distance = predator_transform
-                        .translation
-                        .distance(prey_transform.translation);
-                    if distance < closest_distance {
-                        closest_distance = distance;
-                        closest_prey = Some(prey_entity);
-                    }
-                }
-            }
-
-            predator.current_target = closest_prey;
+        if direction.length_squared() > 0.0 {
+            movement_intent.desired_direction = direction.normalize();
+            movement_intent.desired_force = direction.normalize() * 10.0;
+        } else {
+            movement_intent.desired_direction = Vec2::ZERO;
+            movement_intent.desired_force = Vec2::ZERO;
         }
     }
 }
 
-pub fn predator_movement(
-    mut predators: Query<(&mut Hunter, &Transform, &mut LinearVelocity, &Speed)>,
-    prey: Query<&Transform>,
+pub fn apply_movement_system(
+    mut query: Query<
+        (
+            &mut LinearVelocity,
+            &mut AngularVelocity,
+            &Transform,
+            &MovementIntent,
+            &Speed,
+        ),
+        With<ActiveMover>,
+    >,
 ) {
-    for (mut predator, predator_transform, mut velocity, predator_speed) in predators.iter_mut() {
-        if let Some(target_entity) = predator.current_target {
-            if let Ok(target_transform) = prey.get(target_entity) {
-                let current_pos = predator_transform.translation.truncate();
-                let target_pos = target_transform.translation.truncate();
-                let current_velocity = Vec2::new(velocity.x, velocity.y);
-                let hunt_speed = predator_speed.value();
-
-                // Compute desired velocity toward prey
-                let direction = (target_pos - current_pos).normalize();
-                let desired_velocity = direction * hunt_speed;
-
-                // Apply steering force for smoother movements
-                let steering_force = desired_velocity - current_velocity;
-                let max_force = hunt_speed * HUNTING_REACTIVITY; // TODO set a per entity component
-                let steering_force = steering_force.clamp_length_max(max_force);
-
-                let new_velocity = current_velocity + steering_force * FIXED_TIME_STEP;
-                let new_velocity = new_velocity.clamp_length_max(hunt_speed);
-
-                velocity.x = new_velocity.x;
-                velocity.y = new_velocity.y;
-            } else {
-                predator.current_target = None;
-            }
-        } else {
-            //todo!("If no target, slow down and move randomly.")
-        }
-    }
-}
-
-pub fn prey_movement(
-    mut prey: Query<(&mut Prey, &Transform, &mut LinearVelocity, &Species, &Speed)>,
-    predators: Query<(Entity, &Transform, &Hunter)>,
-) {
-    for (mut prey_comp, prey_transform, mut velocity, prey_species, prey_speed) in prey.iter_mut() {
-        let mut flee_direction = Vec2::ZERO;
-        let mut threat_found = false;
-
-        for (predator_entity, predator_transform, hunter) in predators.iter() {
-            // Check if predator predate
-            if hunter.hunts.contains(prey_species) {
-                let distance = prey_transform
-                    .translation
-                    .distance(predator_transform.translation);
-
-                if distance < prey_comp.detection_range {
-                    // Compute where to flee
-                    let flee_vec =
-                        (prey_transform.translation - predator_transform.translation).normalize();
-                    flee_direction += flee_vec.truncate() / (distance + 1.0);
-                    threat_found = true;
-                    prey_comp.current_threat = Some(predator_entity);
-                }
-            }
+    for (mut lin_vel, mut ang_vel, transform, movement_intent, speed) in query.iter_mut() {
+        // Si pas d'intention de mouvement, on ne fait rien
+        if movement_intent.desired_direction.length_squared() < 0.001 {
+            continue;
         }
 
-        if threat_found {
-            // Normalize the combined flee direction
-            flee_direction = flee_direction.normalize();
+        // Direction actuelle de l'entité
+        let forward_dir = transform.rotation.to_euler(EulerRot::XYZ).2;
+        let facing = Vec2::from_angle(forward_dir);
 
-            // Set flee speed
-            let flee_speed = prey_speed.value();
-            let desired_velocity = flee_direction * flee_speed;
+        // Direction désirée
+        let desired_dir = movement_intent.desired_direction.normalize_or_zero();
 
-            // Steering force for smoother movement
-            let current_velocity = Vec2::new(velocity.x, velocity.y);
-            let steering_force = desired_velocity - current_velocity;
-            let max_force = flee_speed * FLEEING_REACTIVITY; // Prey can change direction quickly when hunted
-            let steering_force = steering_force.clamp_length_max(max_force);
+        // Calcul de l'angle entre direction actuelle et direction désirée
+        let cross = facing.perp_dot(desired_dir);
+        let dot = facing.dot(desired_dir);
 
-            let new_velocity = current_velocity + steering_force * FIXED_TIME_STEP;
-            let new_velocity = new_velocity.clamp_length_max(flee_speed);
+        // Rotation angulaire proportionnelle à l'angle
+        let turn_speed = 3.0; // Vitesse de rotation
+        ang_vel.0 = cross * turn_speed;
 
-            velocity.x = new_velocity.x;
-            velocity.y = new_velocity.y;
-        } else {
-            prey_comp.current_threat = None;
-            // TODO Add behaviour when not fleeing
+        // Accélération vers l'avant si on regarde dans la bonne direction
+        // (on avance plus vite quand on est aligné)
+        let forward_factor = (dot * 0.5 + 0.5).max(0.0); // 0 à 1
+        let acceleration = speed.value() * 20.0 * forward_factor; // Force d'accélération
+
+        // Application de la force dans la direction désirée
+        let force = desired_dir * acceleration * FIXED_TIME_STEP;
+        lin_vel.0 += force;
+
+        // Limitation de la vitesse max
+        if lin_vel.length() > speed.value() {
+            lin_vel.0 = lin_vel.normalize() * speed.value();
         }
     }
 }
@@ -283,7 +273,6 @@ pub fn reproduction(
             &Species,
             &mut Energy,
             Option<&Hunter>,
-            Option<&Prey>,
             Option<&Photosynthesis>,
             Option<&Vision>,
             &Speed,
@@ -312,7 +301,6 @@ pub fn reproduction(
         species,
         mut energy,
         hunter,
-        prey,
         photosynthesis,
         vision,
         speed,
@@ -335,7 +323,6 @@ pub fn reproduction(
                 species.clone(),
                 energy.clone(),
                 hunter.map(|h| h.clone()),
-                prey.map(|p| p.clone()),
                 photosynthesis.map(|p| p.clone()),
                 vision.map(|v| v.clone()),
                 speed.clone(),
@@ -354,7 +341,6 @@ pub fn reproduction(
         species,
         energy,
         hunter,
-        prey,
         photosynthesis,
         vision,
         speed,
@@ -384,12 +370,10 @@ pub fn reproduction(
             Collider::circle(size_value),
             Mesh2d(meshes.add(circle)),
             MeshMaterial2d(materials.add(color_value)),
+            MovementIntent::default(),
         ));
         if let Some(hunter_component) = hunter {
             child.insert(hunter_component);
-        }
-        if let Some(prey_component) = prey {
-            child.insert(prey_component);
         }
         if let Some(photosynthesis_component) = photosynthesis {
             child.insert(photosynthesis_component);

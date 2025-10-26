@@ -29,8 +29,8 @@ pub const TEXT_FONT_SIZE: f32 = 26.0;
 pub const MOVEMENT_ENERGY_COST_FACTOR: f32 = 3.0E-5 * if PREVIEW_MODE { 0.2 } else { 3.0 };
 pub const ENERGY_TRANSFER_RATE: f32 = 1.0 / 3.0;
 pub const IDLE_ENERGY_LOSS: f32 = 3.0;
-pub const HUNTING_REACTIVITY: f32 = 10.0;
-pub const FLEEING_REACTIVITY: f32 = 10.0;
+pub const TURN_SPEED: f32 = 2.0;
+pub const ACCELERATION_FORCE: f32 = 8.0;
 
 /// DEBUG
 pub const DEBUG_FONT_SIZE: f32 = 20.0;

@@ -23,7 +23,7 @@ fn main() {
     let mut app = App::new();
 
     // Simulation
-    app.add_plugins((PhysicsPlugins::default(),))
+    app.add_plugins(PhysicsPlugins::default())
         .add_systems(
             Startup,
             (
@@ -40,16 +40,15 @@ fn main() {
             (
                 idle_energy,
                 plant_regeneration_system,
-                assign_targets,
                 update_vision_system,
-                predator_movement,
-                prey_movement,
+                vision_analysis_system,
+                apply_movement_system,
                 movement_energy,
                 collision_kill_system,
                 reproduction,
                 death,
-                update_hud,
                 visualize_raycast,
+                update_hud,
             )
                 .chain(),
         )
@@ -367,6 +366,7 @@ fn spawn_entities(
                         params.max_speed * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                         params.max_speed * rand_speed_factor * (rng.random::<f32>() * 2.0 - 1.0),
                     )),
+                    MovementIntent::default(),
                 ));
 
                 // Add type-specific components
@@ -382,17 +382,7 @@ fn spawn_entities(
 
                         // Add hunter component if this species eats others
                         if !hunts.is_empty() {
-                            entity_commands
-                                .insert(Hunter::new(hunts.clone(), params.detection_range));
-                        }
-
-                        // Add prey component if this species can be eaten
-                        let can_be_eaten = current_biome
-                            .species
-                            .values()
-                            .any(|other| other.eats.contains(species_key));
-                        if can_be_eaten {
-                            entity_commands.insert(Prey::new(params.detection_range));
+                            entity_commands.insert(Hunter::new(hunts.clone()));
                         }
 
                         // Add active mover for non-plant species
@@ -403,8 +393,8 @@ fn spawn_entities(
                         // Add vision with 3 rays at ±30°
                         entity_commands.insert(Vision::new(
                             params.detection_range,
-                            99,
-                            60.0_f32.to_radians(),
+                            360,
+                            360.0_f32.to_radians(),
                         ));
                         entity_commands.insert(VisionResults::default());
                     }
