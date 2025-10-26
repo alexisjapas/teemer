@@ -7,10 +7,10 @@ edition = "2024"
 preview = []
 
 [dependencies]
-avian2d = { git = "https://github.com/Jondolf/avian", branch = "bevy-0.17-stable" }
+avian2d = "0.4"
 bevy = "0.17"
 bevy_capture = { git = "https://github.com/alexisjapas/bevy_capture", branch = "main", features = ["mp4_ffmpeg_cli_pipe"] }
 chrono = "0.4"
 rand = "0.9"
 serde = { version = "1.0", features = ["derive"] }
-toml = "0.8"
+toml = "0.9"

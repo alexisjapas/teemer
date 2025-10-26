@@ -1,8 +1,8 @@
-biome = "irr_hakur"
+# biome = "irr_hakur"
 # biome = "aganandor"
 # biome = "ezerast"
 # biome = "irr_umar"
-# biome = "onomora"
+biome = "onomora"
 
 [simulation]
 version = "0.3.0 [AQUATIC_CHAOS]"
@@ -39,8 +39,8 @@ hakursa = 2
 # zyralith = 2
 
 ## Onomora thermal spring basin
-# lyrvane = 128
-# omyra = 32
-# cindralys = 16
-# pyrralis = 8
-# onytheron = 2
+lyrvane = 128
+omyra = 32
+cindralys = 16
+pyrralis = 8
+onytheron = 2
