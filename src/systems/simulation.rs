@@ -158,18 +158,13 @@ pub fn vision_analysis_system(
 }
 
 pub fn apply_movement_system(
-    mut query: Query<
-        (
-            &mut LinearVelocity,
-            &mut AngularVelocity,
-            &Transform,
-            &MovementIntent,
-            &Speed,
-        ),
-        With<ActiveMover>,
-    >,
+    mut query: Query<(Forces, &Transform, &MovementIntent), With<ActiveMover>>,
 ) {
-    for (mut lin_vel, mut ang_vel, transform, intent, speed) in query.iter_mut() {
+    for (mut forces, transform, intent) in query.iter_mut() {
+        if intent.desired_direction.length_squared() < 0.001 {
+            continue; // No intent, skip
+        }
+
         // Current facing direction
         let forward_dir = transform.rotation.to_euler(EulerRot::XYZ).2;
         let facing = Vec2::from_angle(forward_dir);
@@ -182,31 +177,20 @@ pub fn apply_movement_system(
         let dot = facing.dot(desired_dir); // Determines alignment (-1 to 1)
 
         // === ROTATION ===
-        // Calculate desired angular velocity based on how far off-target we are
-        // cross tells us which direction to turn (positive = CCW, negative = CW)
-        let desired_angular_vel = cross * TURN_RESPONSIVENESS;
-
-        // Smoothly adjust current angular velocity toward desired (not instant)
-        let ang_accel = (desired_angular_vel - ang_vel.0) * 0.3; // 30% adjustment per frame
-        ang_vel.0 += ang_accel;
-
-        // Safety limit: prevent absurdly fast spinning
-        ang_vel.0 = ang_vel.0.clamp(-MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+        // Apply angular acceleration based on turn error
+        let angular_accel = cross * TURN_RESPONSIVENESS;
+        forces.apply_angular_acceleration(angular_accel);
 
         // === LINEAR MOVEMENT ===
         // Only move forward when reasonably aligned with target
-        // dot ranges from -1 (opposite) to 1 (aligned)
         let alignment_factor = ((dot - FORWARD_ALIGNMENT_THRESHOLD)
             / (1.0 - FORWARD_ALIGNMENT_THRESHOLD))
             .max(0.0)
             .min(1.0);
 
-        // Calculate force in the FACING direction (realistic steering)
-        let acceleration = ACCELERATION_FORCE * alignment_factor;
-        let force = facing * acceleration * FIXED_TIME_STEP;
-
-        // Apply the force - Avian will handle the rest (collisions, friction, etc.)
-        lin_vel.0 += force;
+        // Apply linear acceleration in the FACING direction
+        let linear_accel = facing * ACCELERATION_FORCE * alignment_factor;
+        forces.apply_linear_acceleration(linear_accel);
     }
 }
 
@@ -294,6 +278,9 @@ pub fn reproduction(
         RigidBody::Dynamic,
         Restitution::new(0.2), // Bouncing restitution
         Friction::new(0.5),
+        LinearDamping(LINEAR_DAMPING),
+        AngularDamping(ANGULAR_DAMPING),
+        ColliderDensity(1.0), // Add density so mass is computed from collider
         CollisionEventsEnabled,
         Consumable,
     );

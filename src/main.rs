@@ -307,6 +307,9 @@ fn spawn_entities(
         RigidBody::Dynamic,
         Restitution::new(0.2), // Bouncing restitution
         Friction::new(0.5),
+        LinearDamping(LINEAR_DAMPING),
+        AngularDamping(ANGULAR_DAMPING),
+        ColliderDensity(1.0), // Add density so mass is computed from collider
         CollisionEventsEnabled,
         Consumable,
     );
@@ -345,6 +348,12 @@ fn spawn_entities(
                 let rand_speed_factor = rng.random_range(0.3..1.0);
                 let angle = rng.random_range(0.0..std::f32::consts::TAU);
                 let rotation = Quat::from_rotation_z(angle);
+
+                // Account for entity size to prevent spawning inside walls
+                let entity_padding = walls_paddings + params.size;
+                let spawn_width = WINDOW_WIDTH - 2.0 * entity_padding;
+                let spawn_height = WINDOW_WIDTH - 2.0 * entity_padding;
+
                 let mut entity_commands = commands.spawn((
                     entity_bundle.clone(),
                     entity_color.clone(),
@@ -356,9 +365,8 @@ fn spawn_entities(
                     Mesh2d(meshes.add(circle)),
                     MeshMaterial2d(materials.add(entity_color.value())),
                     Transform::from_xyz(
-                        rng.random::<f32>() * (WINDOW_WIDTH - walls_paddings) - half_w
-                            + walls_paddings,
-                        rng.random::<f32>() * (WINDOW_WIDTH - walls_paddings) + middle_wall_h,
+                        rng.random::<f32>() * spawn_width - half_w + entity_padding,
+                        rng.random::<f32>() * spawn_height + middle_wall_h + entity_padding,
                         Z_ENTITIES,
                     )
                     .with_rotation(rotation),
@@ -393,8 +401,8 @@ fn spawn_entities(
                         // Add vision with 3 rays at ±30°
                         entity_commands.insert(Vision::new(
                             params.detection_range,
-                            360,
-                            360.0_f32.to_radians(),
+                            270,
+                            270.0_f32.to_radians(),
                         ));
                         entity_commands.insert(VisionResults::default());
                     }
