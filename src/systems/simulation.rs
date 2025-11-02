@@ -98,6 +98,7 @@ pub fn vision_analysis_system(
 ) {
     for (vision_result, species, hunter, mut movement_intent) in entity_query.iter_mut() {
         let mut direction = Vec2::ZERO;
+
         for ray in &vision_result.rays {
             if let Some(hit) = &ray.hit {
                 let hit_entity = hit.entity;
@@ -107,38 +108,38 @@ pub fn vision_analysis_system(
                         if let Some(ray_owner_hunter) = hunter {
                             if ray_owner_hunter.hunts.contains(hit_species) {
                                 // Hit entity is prey for ray owner -> Green
-                                3.0
+                                WEIGHT_PREY
                             } else if let Some(hit_hunter) = hit_hunter_opt {
                                 // Check if ray owner is prey for the hit entity
                                 if hit_hunter.hunts.contains(species) {
                                     // Hit entity is predator for ray owner
-                                    -5.0
+                                    WEIGHT_PREDATOR
                                 } else {
                                     // Hit entity is neither prey nor predator for ray owner
-                                    -0.0
+                                    WEIGHT_NEUTRAL
                                 }
                             } else {
                                 // Hit entity is not a hunter
-                                -0.0
+                                WEIGHT_NEUTRAL
                             }
                         } else {
                             // Ray owner is not a hunter, check if hit entity is a predator
                             if let Some(hit_hunter) = hit_hunter_opt {
                                 if hit_hunter.hunts.contains(species) {
                                     // Hit entity is predator for ray owner
-                                    -5.0
+                                    WEIGHT_PREDATOR
                                 } else {
                                     // Hit entity doesn't hunt ray owner
-                                    -0.0
+                                    WEIGHT_NEUTRAL
                                 }
                             } else {
                                 // Hit entity is not a hunter
-                                -0.0
+                                WEIGHT_NEUTRAL
                             }
                         }
                     } else {
                         // Hit entity has no species/hunter info
-                        -0.0
+                        WEIGHT_NEUTRAL
                     };
 
                 let dist_factor = 1.0 - (hit.distance / ray.max_distance);
@@ -146,9 +147,9 @@ pub fn vision_analysis_system(
             }
         }
 
-        if direction.length_squared() > 0.0 {
+        if direction.length_squared() > 0.01 {
             movement_intent.desired_direction = direction.normalize();
-            movement_intent.desired_force = direction.normalize() * 10.0;
+            movement_intent.desired_force = direction;
         } else {
             movement_intent.desired_direction = Vec2::ZERO;
             movement_intent.desired_force = Vec2::ZERO;
@@ -168,40 +169,44 @@ pub fn apply_movement_system(
         With<ActiveMover>,
     >,
 ) {
-    for (mut lin_vel, mut ang_vel, transform, movement_intent, speed) in query.iter_mut() {
-        // Si pas d'intention de mouvement, on ne fait rien
-        if movement_intent.desired_direction.length_squared() < 0.001 {
-            continue;
-        }
-
-        // Direction actuelle de l'entité
+    for (mut lin_vel, mut ang_vel, transform, intent, speed) in query.iter_mut() {
+        // Current facing direction
         let forward_dir = transform.rotation.to_euler(EulerRot::XYZ).2;
         let facing = Vec2::from_angle(forward_dir);
 
-        // Direction désirée
-        let desired_dir = movement_intent.desired_direction.normalize_or_zero();
+        // Desired direction
+        let desired_dir = intent.desired_direction.normalize_or_zero();
 
-        // Calcul de l'angle entre direction actuelle et direction désirée
-        let cross = facing.perp_dot(desired_dir);
-        let dot = facing.dot(desired_dir);
+        // Calculate angle difference
+        let cross = facing.perp_dot(desired_dir); // Determines turn direction
+        let dot = facing.dot(desired_dir); // Determines alignment (-1 to 1)
 
-        // Rotation angulaire proportionnelle à l'angle
-        let turn_speed = 3.0; // Vitesse de rotation
-        ang_vel.0 = cross * turn_speed;
+        // === ROTATION ===
+        // Calculate desired angular velocity based on how far off-target we are
+        // cross tells us which direction to turn (positive = CCW, negative = CW)
+        let desired_angular_vel = cross * TURN_RESPONSIVENESS;
 
-        // Accélération vers l'avant si on regarde dans la bonne direction
-        // (on avance plus vite quand on est aligné)
-        let forward_factor = (dot * 0.5 + 0.5).max(0.0); // 0 à 1
-        let acceleration = speed.value() * 20.0 * forward_factor; // Force d'accélération
+        // Smoothly adjust current angular velocity toward desired (not instant)
+        let ang_accel = (desired_angular_vel - ang_vel.0) * 0.3; // 30% adjustment per frame
+        ang_vel.0 += ang_accel;
 
-        // Application de la force dans la direction désirée
-        let force = desired_dir * acceleration * FIXED_TIME_STEP;
+        // Safety limit: prevent absurdly fast spinning
+        ang_vel.0 = ang_vel.0.clamp(-MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+
+        // === LINEAR MOVEMENT ===
+        // Only move forward when reasonably aligned with target
+        // dot ranges from -1 (opposite) to 1 (aligned)
+        let alignment_factor = ((dot - FORWARD_ALIGNMENT_THRESHOLD)
+            / (1.0 - FORWARD_ALIGNMENT_THRESHOLD))
+            .max(0.0)
+            .min(1.0);
+
+        // Calculate force in the FACING direction (realistic steering)
+        let acceleration = ACCELERATION_FORCE * alignment_factor;
+        let force = facing * acceleration * FIXED_TIME_STEP;
+
+        // Apply the force - Avian will handle the rest (collisions, friction, etc.)
         lin_vel.0 += force;
-
-        // Limitation de la vitesse max
-        if lin_vel.length() > speed.value() {
-            lin_vel.0 = lin_vel.normalize() * speed.value();
-        }
     }
 }
 
@@ -288,7 +293,7 @@ pub fn reproduction(
     let entity_bundle = (
         RigidBody::Dynamic,
         Restitution::new(0.2), // Bouncing restitution
-        Friction::new(0.2),
+        Friction::new(0.5),
         CollisionEventsEnabled,
         Consumable,
     );

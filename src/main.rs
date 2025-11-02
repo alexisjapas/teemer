@@ -306,7 +306,7 @@ fn spawn_entities(
     let entity_bundle = (
         RigidBody::Dynamic,
         Restitution::new(0.2), // Bouncing restitution
-        Friction::new(0.2),
+        Friction::new(0.5),
         CollisionEventsEnabled,
         Consumable,
     );

@@ -9,7 +9,7 @@ pub const PREVIEW_MODE: bool = cfg!(feature = "preview");
 pub const WINDOW_WIDTH: f32 = 1080.0;
 pub const WINDOW_HEIGHT: f32 = 1920.0;
 pub const FRAMERATE: f32 = 30.0;
-pub const MAX_DURATION: f32 = 61.0;
+pub const MAX_DURATION: f32 = 11.0;
 pub const MAX_FRAMES_TO_CAPTURE: u32 = MAX_DURATION as u32 * FRAMERATE as u32;
 pub const FIXED_TIME_STEP: f32 = 1.0 / FRAMERATE;
 
@@ -26,9 +26,19 @@ pub const SUBTITLE_FONT_SIZE: f32 = 28.0;
 pub const TEXT_FONT_SIZE: f32 = 26.0;
 
 /// Simulation
+// Energy
 pub const MOVEMENT_ENERGY_COST_FACTOR: f32 = 3.0E-5 * if PREVIEW_MODE { 0.2 } else { 3.0 };
 pub const ENERGY_TRANSFER_RATE: f32 = 1.0 / 3.0;
 pub const IDLE_ENERGY_LOSS: f32 = 3.0;
+// Vision
+pub const WEIGHT_PREY: f32 = 12.0;
+pub const WEIGHT_PREDATOR: f32 = 18.0;
+pub const WEIGHT_NEUTRAL: f32 = -0.0;
+// Movements
+pub const TURN_RESPONSIVENESS: f32 = 12.0;
+pub const ACCELERATION_FORCE: f32 = 36.0;
+pub const FORWARD_ALIGNMENT_THRESHOLD: f32 = 0.3;
+pub const MAX_ANGULAR_VELOCITY: f32 = 6.0;
 
 /// DEBUG
 pub const DEBUG_FONT_SIZE: f32 = 20.0;
