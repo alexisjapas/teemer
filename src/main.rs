@@ -401,8 +401,8 @@ fn spawn_entities(
                         // Add vision with 3 rays at ±30°
                         entity_commands.insert(Vision::new(
                             params.detection_range,
-                            270,
-                            270.0_f32.to_radians(),
+                            360,
+                            360.0_f32.to_radians(),
                         ));
                         entity_commands.insert(VisionResults::default());
                     }

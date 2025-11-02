@@ -32,8 +32,8 @@ pub const ENERGY_TRANSFER_RATE: f32 = 1.0 / 3.0;
 pub const IDLE_ENERGY_LOSS: f32 = 3.0;
 // Vision
 pub const WEIGHT_PREY: f32 = 6.0;
-pub const WEIGHT_PREDATOR: f32 = 18.0;
-pub const WEIGHT_NEUTRAL: f32 = -0.0;
+pub const WEIGHT_PREDATOR: f32 = -18.0;
+pub const WEIGHT_NEUTRAL: f32 = 0.0;
 // Movements
 pub const TURN_RESPONSIVENESS: f32 = 20.0;
 pub const ACCELERATION_FORCE: f32 = 800.0;
