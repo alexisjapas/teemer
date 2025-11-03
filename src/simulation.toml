@@ -7,15 +7,15 @@ biome = "irr_hakur"
 [simulation]
 version = "0.4.0 [AQUATIC_CHAOS]"
 lab_name = "1"
-run_id = "70"
+run_id = "76"
 
 [populations]
 ## Irr'Hakur oasis pond
-sahlalga = 32
-mirajun = 16
-dunetide = 8
-gharlox = 4
-hakursa = 1
+sahlalga = 512
+mirajun = 256
+dunetide = 32
+gharlox = 16
+hakursa = 4
 
 ## Aganandor mountain lake
 # lodril = 1024
