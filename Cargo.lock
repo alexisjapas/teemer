@@ -4692,7 +4692,7 @@ dependencies = [
 
 [[package]]
 name = "teemlabs"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "avian2d",
  "bevy",

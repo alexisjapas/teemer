@@ -1,7 +1,6 @@
 use crate::components::HudBatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs;
 
 pub const PREVIEW_MODE: bool = cfg!(feature = "preview");
 
@@ -130,19 +129,6 @@ pub fn wrap_text(text: &str, max_width: usize) -> String {
     lines.join("\n")
 }
 
-/// Configuration Loading Functions
-pub fn load_lore_config(path: &str) -> Result<LoreConfig, Box<dyn std::error::Error>> {
-    let content = fs::read_to_string(path)?;
-    let config: LoreConfig = toml::from_str(&content)?;
-    Ok(config)
-}
-
-pub fn load_simulation_config(path: &str) -> Result<SimulationConfig, Box<dyn std::error::Error>> {
-    let content = fs::read_to_string(path)?;
-    let config: SimulationConfig = toml::from_str(&content)?;
-    Ok(config)
-}
-
 /// Runtime Configuration
 pub struct RuntimeConfig {
     pub lore: LoreConfig,
@@ -153,11 +139,14 @@ pub struct RuntimeConfig {
 
 impl RuntimeConfig {
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
-        // Load configuration files with better error context
-        let lore = load_lore_config("src/lore.toml")
-            .map_err(|e| format!("Failed to load lore config: {}", e))?;
-        let simulation = load_simulation_config("src/simulation.toml")
-            .map_err(|e| format!("Failed to load simulation config: {}", e))?;
+        // Load embedded configuration files
+        let lore_content = include_str!("lore.toml");
+        let simulation_content = include_str!("simulation.toml");
+
+        let lore: LoreConfig = toml::from_str(lore_content)
+            .map_err(|e| format!("Failed to parse lore config: {}", e))?;
+        let simulation: SimulationConfig = toml::from_str(simulation_content)
+            .map_err(|e| format!("Failed to parse simulation config: {}", e))?;
 
         // Validate biome exists
         let current_biome_key = &simulation.biome;
