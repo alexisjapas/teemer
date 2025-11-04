@@ -3,9 +3,6 @@ name = "teemlabs"
 version = "0.4.1"
 edition = "2024"
 
-[features]
-preview = []
-
 [dependencies]
 avian2d = "0.4"
 bevy = "0.17"
