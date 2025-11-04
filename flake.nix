@@ -8,11 +8,11 @@
   };
 
   outputs =
-    { self
-    , nixpkgs
-    , rust-overlay
-    , flake-utils
-    ,
+    {
+      self,
+      nixpkgs,
+      rust-overlay,
+      flake-utils,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -40,17 +40,6 @@
           xorg.libXi
         ];
 
-        # Dev commands
-        dev-preview = pkgs.writeShellScriptBin "dev-preview" ''
-          echo "Running the preview."
-          cargo run --features bevy/dynamic_linking,preview "$@"
-          echo "Preview done."
-        '';
-        dev-gen = pkgs.writeShellScriptBin "dev-gen" ''
-          echo "Running the video generation."
-          cargo run "$@"
-          echo "Video generation done."
-        '';
       in
       {
         devShells.default = pkgs.mkShell {
@@ -65,10 +54,6 @@
 
               # Video generation
               ffmpeg-full
-
-              # Custom commands
-              dev-preview
-              dev-gen
             ]
             ++ libraries;
 
@@ -78,12 +63,8 @@
           # Set WINIT default scale
           WINIT_X11_SCALE_FACTOR = 0.7;
 
-          # Alternative: you can also use shellHook to set the path
-          shellHook = ''
-            echo "TeemLabs commands:"
-            echo "- \`dev-preview\`: Run a preview."
-            echo "- \`dev-gen\`: Generate a video."
-          '';
+          # Shell hook
+          shellHook = '''';
         };
       }
     );
