@@ -2,8 +2,6 @@ use crate::components::HudBatch;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-pub const PREVIEW_MODE: bool = cfg!(feature = "preview");
-
 /// Video
 pub const WINDOW_WIDTH: f32 = 1080.0;
 pub const WINDOW_HEIGHT: f32 = 1920.0;
@@ -26,7 +24,7 @@ pub const TEXT_FONT_SIZE: f32 = 26.0;
 
 /// Simulation
 // Energy
-pub const MOVEMENT_ENERGY_COST_FACTOR: f32 = 3.0E-5 * if PREVIEW_MODE { 0.2 } else { 3.0 };
+pub const MOVEMENT_ENERGY_COST_FACTOR: f32 = 1.0E-4;
 pub const ENERGY_TRANSFER_RATE: f32 = 1.0 / 3.0;
 pub const IDLE_ENERGY_LOSS: f32 = 3.0;
 // Vision
@@ -36,7 +34,7 @@ pub const WEIGHT_NEUTRAL: f32 = 0.0;
 // Movements
 pub const TURN_RESPONSIVENESS: f32 = 20.0;
 pub const ACCELERATION_FORCE: f32 = 800.0;
-pub const LINEAR_DAMPING: f32 = 0.5; // Simulates water drag (not friction)
+pub const LINEAR_DAMPING: f32 = 0.5; // Simulates water drag
 pub const ANGULAR_DAMPING: f32 = 1.0;
 pub const FORWARD_ALIGNMENT_THRESHOLD: f32 = 0.2;
 

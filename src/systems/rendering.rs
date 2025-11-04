@@ -208,15 +208,6 @@ pub fn capture_frame(
     }
 }
 
-pub fn preview_frame_counter(mut frame_counter: Local<u32>, mut exit: MessageWriter<AppExit>) {
-    if *frame_counter >= MAX_FRAMES_TO_CAPTURE {
-        println!("Generation done. Exiting.");
-        exit.write(AppExit::Success);
-        return;
-    }
-    *frame_counter += 1;
-}
-
 pub fn manual_physics_step(mut physics_time: ResMut<Time<Physics>>) {
     println!("Physics step advancing.");
     physics_time.advance_by(std::time::Duration::from_secs_f32(FIXED_TIME_STEP));

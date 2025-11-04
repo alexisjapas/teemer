@@ -23,73 +23,56 @@ fn main() {
     let mut app = App::new();
 
     // Simulation
-    app.add_plugins(PhysicsPlugins::default())
-        .add_systems(
-            Startup,
-            (
-                setup,
-                generate_world,
-                spawn_entities,
-                spawn_hud,
-                spawn_debugger,
-            )
-                .chain(),
-        )
-        .add_systems(
-            Update,
-            (
-                idle_energy,
-                plant_regeneration_system,
-                update_vision_system,
-                vision_analysis_system,
-                apply_movement_system,
-                movement_energy,
-                collision_kill_system,
-                reproduction,
-                death,
-                visualize_raycast,
-                update_hud,
-            )
-                .chain(),
-        )
-        // Avian's physics
-        .insert_resource(Gravity(Vec2::ZERO))
-        // Miscellaneous
-        .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
-        .init_resource::<FrameCount>()
-        .add_systems(Update, update_debugger);
-
-    // Preview vs generation
-    if PREVIEW_MODE {
-        println!("Preview mode: window + no capture.");
-        app.add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                resolution: (WINDOW_WIDTH as u32, WINDOW_HEIGHT as u32).into(),
-                title: "TeemLabs".into(),
-                resizable: false,
+    app.add_plugins((
+        DefaultPlugins
+            .build()
+            .disable::<WinitPlugin>()
+            .set(RenderPlugin {
+                synchronous_pipeline_compilation: true,
                 ..default()
             }),
-            ..default()
-        }))
-        .add_systems(Update, preview_frame_counter)
-        .insert_resource(Time::<Fixed>::from_seconds(FIXED_TIME_STEP as f64));
-    } else {
-        println!("Generation mode: headless + capture.");
-        app.add_plugins((
-            DefaultPlugins
-                .build()
-                .disable::<WinitPlugin>()
-                .set(RenderPlugin {
-                    synchronous_pipeline_compilation: true,
-                    ..default()
-                }),
-            ScheduleRunnerPlugin {
-                run_mode: bevy::app::RunMode::Loop { wait: None },
-            },
-            bevy_capture::CapturePlugin,
-        ))
-        .add_systems(Update, (manual_physics_step, capture_frame));
-    }
+        PhysicsPlugins::default(),
+        ScheduleRunnerPlugin {
+            run_mode: bevy::app::RunMode::Loop { wait: None },
+        },
+        bevy_capture::CapturePlugin,
+    ))
+    .add_systems(
+        Startup,
+        (
+            setup,
+            generate_world,
+            spawn_entities,
+            spawn_hud,
+            spawn_debugger,
+        )
+            .chain(),
+    )
+    .add_systems(
+        Update,
+        (
+            idle_energy,
+            plant_regeneration_system,
+            update_vision_system,
+            vision_analysis_system,
+            apply_movement_system,
+            movement_energy,
+            collision_kill_system,
+            reproduction,
+            death,
+            visualize_raycast,
+            update_hud,
+            manual_physics_step,
+            capture_frame,
+            update_debugger,
+        )
+            .chain(),
+    )
+    // Avian's physics
+    .insert_resource(Gravity(Vec2::ZERO))
+    // Miscellaneous
+    .insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)))
+    .init_resource::<FrameCount>();
 
     // Run
     app.run();
@@ -106,35 +89,26 @@ fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     });
 
     // Create outputs directories
-    if PREVIEW_MODE {
-        // Camera
-        commands.spawn(Camera2d::default());
-    } else {
-        // Get and format date
-        let now: DateTime<Utc> = Utc::now();
-        let str_date = now.format("sim_%Y-%m-%d-%H-%M-%SZ").to_string();
+    // Get and format date
+    let now: DateTime<Utc> = Utc::now();
+    let str_date = now.format("sim_%Y-%m-%d-%H-%M-%SZ").to_string();
 
-        // Generate directories
-        let sim_dir = format!("./outputs/{}", str_date);
-        fs::create_dir_all(&sim_dir).expect("Failed to create simulation directory.");
+    // Generate directories
+    let sim_dir = format!("./outputs/{}", str_date);
+    fs::create_dir_all(&sim_dir).expect("Failed to create simulation directory.");
 
-        // Insert as a resource
-        commands.insert_resource(SimulationMetadata {
-            path_dir: sim_dir,
-            name: str_date,
-        });
+    // Insert as a resource
+    commands.insert_resource(SimulationMetadata {
+        path_dir: sim_dir,
+        name: str_date,
+    });
 
-        // Headless camera
-        commands.spawn((
-            Camera2d,
-            Camera::default().target_headless(
-                WINDOW_WIDTH as u32,
-                WINDOW_HEIGHT as u32,
-                &mut images,
-            ),
-            CaptureBundle::default(),
-        ));
-    }
+    // Headless camera
+    commands.spawn((
+        Camera2d,
+        Camera::default().target_headless(WINDOW_WIDTH as u32, WINDOW_HEIGHT as u32, &mut images),
+        CaptureBundle::default(),
+    ));
 }
 
 /// Simulation
