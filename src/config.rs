@@ -17,7 +17,7 @@ pub const Z_ENTITIES: f32 = 2.0;
 
 /// HUD
 pub const WALLS_THICKNESS: f32 = 8.0;
-pub const ENTITIES_SIZE: f32 = 64.0;
+pub const ENTITIES_SIZE: f32 = 48.0;
 pub const TITLE_FONT_SIZE: f32 = 32.0;
 pub const SUBTITLE_FONT_SIZE: f32 = 28.0;
 pub const TEXT_FONT_SIZE: f32 = 26.0;

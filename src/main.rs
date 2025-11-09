@@ -408,7 +408,12 @@ fn spawn_entities(
 }
 
 /// HUD
-fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
+fn spawn_hud(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    config: Res<GameConfig>,
+) {
     let layout = Layout::new();
     let text_z = 1.0; // Ensure text is above other sprites
 
@@ -440,14 +445,12 @@ fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
 
     // Entity sprite
     let (start_r, start_g, start_b) = first_batch.sprite_color;
-    let sprite_y = layout.middle_wall_y - WALLS_THICKNESS / 2.0 - TITLE_FONT_SIZE - 64.0; // Below middle wall
+    let sprite_y = layout.middle_wall_y - WALLS_THICKNESS - TITLE_FONT_SIZE - 74.0; // Below middle wall
+    let circle = Circle::new(ENTITIES_SIZE);
     let sprite = commands
         .spawn((
-            Sprite {
-                color: Color::linear_rgb(start_r, start_g, start_b),
-                custom_size: Some(Vec2::splat(ENTITIES_SIZE)),
-                ..default()
-            },
+            Mesh2d(meshes.add(circle)),
+            MeshMaterial2d(materials.add(Color::linear_rgb(start_r, start_g, start_b))),
             RigidBody::Kinematic,
             Transform::from_xyz(0.0, sprite_y - ENTITIES_SIZE / 2.0, 0.0),
             AngularVelocity(0.2),

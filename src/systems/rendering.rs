@@ -13,7 +13,8 @@ pub fn update_hud(
     mut hud_batches: ResMut<HudBatches>,
     hud_entities: Res<HudEntities>,
     mut text_query: Query<&mut Text2d>,
-    mut sprite_query: Query<&mut Sprite>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    material_query: Query<&MeshMaterial2d<ColorMaterial>>,
 ) {
     if frame_count.0 % FRAMES_PER_UPDATE == 0 && frame_count.0 > 0 {
         // Get next batch
@@ -35,9 +36,11 @@ pub fn update_hud(
         }
 
         // Update sprite color
-        if let Ok(mut sprite) = sprite_query.get_mut(hud_entities.sprite) {
-            let (r, g, b) = batch.sprite_color;
-            sprite.color = Color::linear_rgb(r, g, b);
+        if let Ok(material_handle) = material_query.get(hud_entities.sprite) {
+            if let Some(material) = materials.get_mut(&material_handle.0) {
+                let (r, g, b) = batch.sprite_color;
+                material.color = Color::linear_rgb(r, g, b);
+            }
         }
     }
 }
