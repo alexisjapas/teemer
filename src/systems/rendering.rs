@@ -50,7 +50,7 @@ pub fn update_debugger(
     if let Ok(mut text) = debugger_query.single_mut() {
         **text = format!(
             "VERSION: V{} | LAB: L{} | RUN: R{} | FRAME F{}",
-            config.runtime.simulation.simulation.version,
+            env!("CARGO_PKG_VERSION"),
             config.runtime.simulation.simulation.lab_name,
             config.runtime.simulation.simulation.run_id,
             frame_count.0

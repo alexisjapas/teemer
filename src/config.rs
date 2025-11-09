@@ -85,7 +85,6 @@ pub struct SimulationConfig {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct SimulationMeta {
-    pub version: String,
     pub lab_name: String,
     pub run_id: String,
 }
