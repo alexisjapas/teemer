@@ -5,7 +5,7 @@ biome = "aganandor"
 # biome = "onomora"
 
 [simulation]
-lab_name = "1"
+lab_name = "RAY_VISION"
 run_id = "77"
 
 [populations]

@@ -497,7 +497,7 @@ fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
 fn spawn_debugger(mut commands: Commands, config: Res<GameConfig>) {
     commands.spawn((
         Text2d::new(format!(
-            "VERSION: V{} | LAB: L{} | RUN: R{} | FRAME N°0",
+            "TEEMLABS_VERSION: V{} | LAB: {} | RUN: R{} | FRAME N°0",
             env!("CARGO_PKG_VERSION"),
             config.runtime.simulation.simulation.lab_name,
             config.runtime.simulation.simulation.run_id

@@ -49,7 +49,7 @@ pub fn update_debugger(
 ) {
     if let Ok(mut text) = debugger_query.single_mut() {
         **text = format!(
-            "VERSION: V{} | LAB: L{} | RUN: R{} | FRAME F{}",
+            "TEEMLABS_VERSION: V{} | LAB: {} | RUN: R{} | FRAME F{}",
             env!("CARGO_PKG_VERSION"),
             config.runtime.simulation.simulation.lab_name,
             config.runtime.simulation.simulation.run_id,
