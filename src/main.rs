@@ -264,6 +264,26 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     ));
 }
 
+/// Helper struct for consistent layout calculations
+struct Layout {
+    half_width: f32,
+    half_height: f32,
+    middle_wall_y: f32,
+}
+
+impl Layout {
+    fn new() -> Self {
+        let half_width = WINDOW_WIDTH / 2.0;
+        let half_height = WINDOW_HEIGHT / 2.0;
+        let middle_wall_y = -half_height + WALLS_THICKNESS / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH);
+        Self {
+            half_width,
+            half_height,
+            middle_wall_y,
+        }
+    }
+}
+
 fn spawn_entities(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -271,11 +291,9 @@ fn spawn_entities(
     config: Res<GameConfig>,
 ) {
     let mut rng = rand::rng();
+    let layout = Layout::new();
 
     let walls_paddings = WALLS_THICKNESS * 2.0 + 8.0;
-    let half_w = WINDOW_WIDTH / 2.0;
-    let half_h = WINDOW_HEIGHT / 2.0;
-    let middle_wall_h = -half_h + WALLS_THICKNESS / 2.0 + (WINDOW_HEIGHT - WINDOW_WIDTH);
 
     let entity_bundle = (
         RigidBody::Dynamic,
@@ -339,8 +357,8 @@ fn spawn_entities(
                     Mesh2d(meshes.add(circle)),
                     MeshMaterial2d(materials.add(entity_color.value())),
                     Transform::from_xyz(
-                        rng.random::<f32>() * spawn_width - half_w + entity_padding,
-                        rng.random::<f32>() * spawn_height + middle_wall_h + entity_padding,
+                        rng.random::<f32>() * spawn_width - layout.half_width + entity_padding,
+                        rng.random::<f32>() * spawn_height + layout.middle_wall_y + entity_padding,
                         Z_ENTITIES,
                     )
                     .with_rotation(rotation),
@@ -391,8 +409,7 @@ fn spawn_entities(
 
 /// HUD
 fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
-    let half_h = WINDOW_HEIGHT / 2.0;
-    let middle_wall_h = -half_h + (WINDOW_HEIGHT - WINDOW_WIDTH);
+    let layout = Layout::new();
     let text_z = 1.0; // Ensure text is above other sprites
 
     // Get the first batch for initial display
@@ -406,7 +423,7 @@ fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
     });
 
     // Title
-    let title_y = middle_wall_h - TITLE_FONT_SIZE + WALLS_THICKNESS / 2.0;
+    let title_y = layout.middle_wall_y - TITLE_FONT_SIZE + WALLS_THICKNESS / 2.0;
     let title = commands
         .spawn((
             Text2d::new(config.runtime.get_title()),
@@ -423,7 +440,7 @@ fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
 
     // Entity sprite
     let (start_r, start_g, start_b) = first_batch.sprite_color;
-    let sprite_y = middle_wall_h - WALLS_THICKNESS / 2.0 - TITLE_FONT_SIZE - 64.0; // Below middle wall
+    let sprite_y = layout.middle_wall_y - WALLS_THICKNESS / 2.0 - TITLE_FONT_SIZE - 64.0; // Below middle wall
     let sprite = commands
         .spawn((
             Sprite {
@@ -477,7 +494,11 @@ fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
                 ..default()
             },
             TextColor(Color::WHITE),
-            Transform::from_xyz(0.0, (-250.0 - 154.0 / 2.0 - half_h + 54.0) / 2.0, text_z),
+            Transform::from_xyz(
+                0.0,
+                (-250.0 - 154.0 / 2.0 - layout.half_height + 54.0) / 2.0,
+                text_z,
+            ),
             TextLayout::new_with_justify(Justify::Center),
             HudDescription,
         ))
@@ -495,6 +516,8 @@ fn spawn_hud(mut commands: Commands, config: Res<GameConfig>) {
 
 /// DEBUG
 fn spawn_debugger(mut commands: Commands, config: Res<GameConfig>) {
+    let layout = Layout::new();
+
     commands.spawn((
         Text2d::new(format!(
             "TEEMLABS_VERSION: V{} | LAB: {} | RUN: R{} | FRAME N°0",
@@ -509,7 +532,7 @@ fn spawn_debugger(mut commands: Commands, config: Res<GameConfig>) {
         TextColor(Color::WHITE),
         Transform::from_xyz(
             0.0,
-            -WINDOW_HEIGHT / 2.0 + DEBUG_FONT_SIZE + WALLS_THICKNESS + DEBUG_POS_PADDING,
+            -layout.half_height + DEBUG_FONT_SIZE + WALLS_THICKNESS + DEBUG_POS_PADDING,
             1.0,
         ),
         TextLayout::new_with_justify(Justify::Center),
