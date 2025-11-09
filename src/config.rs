@@ -260,7 +260,7 @@ impl EntitySpawnParams {
         let detection_range = 10.0 + size * 10.0;
 
         Self {
-            size: size,
+            size,
             color: data.color,
             max_speed: base_speed,
             initial_energy: base_energy * 0.7, // Start at 70% of max

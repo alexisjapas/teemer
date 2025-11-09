@@ -539,6 +539,6 @@ fn spawn_debugger(mut commands: Commands, config: Res<GameConfig>) {
             1.0,
         ),
         TextLayout::new_with_justify(Justify::Center),
-        DEBUGGER,
+        Debugger,
     ));
 }

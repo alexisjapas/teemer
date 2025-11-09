@@ -1,6 +1,6 @@
 use avian2d::prelude::*;
 use bevy::{app::AppExit, diagnostic::FrameCount, prelude::*};
-use bevy_capture::{encoder::mp4_ffmpeg_cli_pipe, Capture};
+use bevy_capture::{Capture, encoder::mp4_ffmpeg_cli_pipe};
 use std::time::Instant;
 
 use crate::components::*;
@@ -48,7 +48,7 @@ pub fn update_hud(
 pub fn update_debugger(
     frame_count: Res<FrameCount>,
     config: Res<GameConfig>,
-    mut debugger_query: Query<&mut Text2d, With<DEBUGGER>>,
+    mut debugger_query: Query<&mut Text2d, With<Debugger>>,
 ) {
     if let Ok(mut text) = debugger_query.single_mut() {
         **text = format!(

@@ -152,7 +152,7 @@ impl Energy {
     pub fn new(initial: f32, max: f32) -> Self {
         Self {
             current: initial,
-            max: max,
+            max,
         }
     }
 
@@ -256,7 +256,7 @@ pub struct GameConfig {
 
 /// DEBUG
 #[derive(Component)]
-pub struct DEBUGGER;
+pub struct Debugger;
 
 /// Rendering
 #[derive(Component)]
