@@ -6,7 +6,7 @@ biome = "aganandor"
 
 [simulation]
 lab_name = "RAY_VISION"
-run_id = "77"
+run_id = "83"
 
 [populations]
 ## Irr'Hakur oasis pond
@@ -17,10 +17,10 @@ run_id = "77"
 # hakursa = 4
 
 ## Aganandor mountain lake
-lodril = 64
-vanyr = 16
-thalvyrn = 4
-myrrkul = 1
+lodril = 512
+vanyr = 32
+thalvyrn = 8
+myrrkul = 2
 
 ## Ezerast salt marsh
 # qyrsel = 512
