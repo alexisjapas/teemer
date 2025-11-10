@@ -1,12 +1,12 @@
 # biome = "irr_hakur"
-biome = "aganandor"
-# biome = "ezerast"
+# biome = "aganandor"
+biome = "ezerast"
 # biome = "irr_umar"
 # biome = "onomora"
 
 [simulation]
 lab_name = "RAY_VISION"
-run_id = "83"
+run_id = "84"
 
 [populations]
 ## Irr'Hakur oasis pond
@@ -17,18 +17,18 @@ run_id = "83"
 # hakursa = 4
 
 ## Aganandor mountain lake
-lodril = 512
-vanyr = 32
-thalvyrn = 8
-myrrkul = 2
+# lodril = 512
+# vanyr = 32
+# thalvyrn = 8
+# myrrkul = 2
 
 ## Ezerast salt marsh
-# qyrsel = 512
-# ozyrae = 256
-# veytris = 32
-# brisqal = 64
-# chalyth = 16
-# vorqualis = 4
+qyrsel = 72
+ozyrae = 36
+veytris = 18
+brisqal = 12
+chalyth = 6
+vorqualis = 1
 
 ## Irr'Umar swamp
 # vyrmosa = 748

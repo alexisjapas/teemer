@@ -6,3 +6,6 @@
 
 # Outputs
 outputs
+
+# Traces
+**/trace*.json
