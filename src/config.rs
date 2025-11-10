@@ -187,7 +187,7 @@ impl RuntimeConfig {
 
         // Generate HUD batches from species data
         let mut batches = Vec::new();
-        for (_species_key, species_data) in &current_biome.species {
+        for species_data in current_biome.species.values() {
             if species_data.species_type == "Fauna" {
                 let batch = HudBatch {
                     title: title.clone(),

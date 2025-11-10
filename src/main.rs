@@ -137,7 +137,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     );
     commands.spawn((
         Sprite {
-            color: water_color.clone(),
+            color: water_color,
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WINDOW_WIDTH)),
             ..default()
         },
@@ -147,7 +147,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     // Top wall
     commands.spawn((
         Sprite {
-            color: walls_color.clone(),
+            color: walls_color,
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
@@ -160,7 +160,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     // Middle walls
     commands.spawn((
         Sprite {
-            color: walls_color.clone(),
+            color: walls_color,
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
@@ -171,7 +171,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     ));
     commands.spawn((
         Sprite {
-            color: walls_color.clone(),
+            color: walls_color,
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
@@ -184,7 +184,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     // Bottom walls
     commands.spawn((
         Sprite {
-            color: walls_color.clone(),
+            color: walls_color,
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
@@ -195,7 +195,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     ));
     commands.spawn((
         Sprite {
-            color: walls_color.clone(),
+            color: walls_color,
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
@@ -208,7 +208,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     // Left wall
     commands.spawn((
         Sprite {
-            color: walls_color.clone(),
+            color: walls_color,
             custom_size: Some(Vec2::new(WALLS_THICKNESS, WINDOW_HEIGHT)),
             ..default()
         },
@@ -221,7 +221,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     // Right wall
     commands.spawn((
         Sprite {
-            color: walls_color.clone(),
+            color: walls_color,
             custom_size: Some(Vec2::new(WALLS_THICKNESS, WINDOW_HEIGHT)),
             ..default()
         },
@@ -234,7 +234,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     // Sprite walls
     commands.spawn((
         Sprite {
-            color: walls_color.clone(),
+            color: walls_color,
             custom_size: Some(Vec2::new(WALLS_THICKNESS, 154.0)),
             ..default()
         },
@@ -244,7 +244,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     ));
     commands.spawn((
         Sprite {
-            color: walls_color.clone(),
+            color: walls_color,
             custom_size: Some(Vec2::new(WALLS_THICKNESS, 154.0)),
             ..default()
         },
@@ -254,7 +254,7 @@ fn generate_world(mut commands: Commands, config: Res<GameConfig>) {
     ));
     commands.spawn((
         Sprite {
-            color: walls_color.clone(),
+            color: walls_color,
             custom_size: Some(Vec2::new(WINDOW_WIDTH, WALLS_THICKNESS)),
             ..default()
         },
@@ -323,7 +323,7 @@ fn spawn_entities(
 
             let params = EntitySpawnParams::from_species_data(species_data);
             let species_enum = Species::from_string(species_key)
-                .expect(&format!("Unknown species: {}", species_key));
+                .unwrap_or_else(|| panic!("Unknown species: {}", species_key));
             let entity_color = EntityColor::new(params.color[0], params.color[1], params.color[2]);
 
             // Create hunting relationships

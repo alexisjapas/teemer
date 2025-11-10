@@ -16,7 +16,7 @@ pub fn update_hud(
     mut materials: ResMut<Assets<ColorMaterial>>,
     material_query: Query<&MeshMaterial2d<ColorMaterial>>,
 ) {
-    if frame_count.0 % FRAMES_PER_UPDATE == 0 && frame_count.0 > 0 {
+    if frame_count.0 > 0 && frame_count.0.is_multiple_of(FRAMES_PER_UPDATE) {
         // Get next batch
         hud_batches.index = (hud_batches.index + 1) % hud_batches.batches.len();
         let batch = &hud_batches.batches[hud_batches.index];
@@ -36,11 +36,11 @@ pub fn update_hud(
         }
 
         // Update sprite color
-        if let Ok(material_handle) = material_query.get(hud_entities.sprite) {
-            if let Some(material) = materials.get_mut(&material_handle.0) {
-                let (r, g, b) = batch.sprite_color;
-                material.color = Color::linear_rgb(r, g, b);
-            }
+        if let Ok(material_handle) = material_query.get(hud_entities.sprite)
+            && let Some(material) = materials.get_mut(&material_handle.0)
+        {
+            let (r, g, b) = batch.sprite_color;
+            material.color = Color::linear_rgb(r, g, b);
         }
     }
 }
@@ -202,11 +202,11 @@ pub fn capture_frame(
         }
 
         // Safety: force exit if encoder never finishes within a reasonable wall-clock time.
-        if let Some(started) = *stop_requested_at {
-            if started.elapsed().as_secs() > 60 {
-                eprintln!("Capture did not finish within 60s — forcing exit.");
-                app_exit.write(AppExit::Success);
-            }
+        if let Some(started) = *stop_requested_at
+            && started.elapsed().as_secs() > 60
+        {
+            eprintln!("Capture did not finish within 60s — forcing exit.");
+            app_exit.write(AppExit::Success);
         }
     }
 }

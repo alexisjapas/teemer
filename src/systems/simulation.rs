@@ -185,8 +185,7 @@ pub fn apply_movement_system(
         // Only move forward when reasonably aligned with target
         let alignment_factor = ((dot - FORWARD_ALIGNMENT_THRESHOLD)
             / (1.0 - FORWARD_ALIGNMENT_THRESHOLD))
-            .max(0.0)
-            .min(1.0);
+            .clamp(0.0, 1.0);
 
         // Apply linear acceleration in the FACING direction
         let linear_accel = facing * ACCELERATION_FORCE * alignment_factor;
@@ -211,34 +210,34 @@ pub fn collision_kill_system(
         };
 
         // Check Case 1: Entity1 is the predator, Entity2 is the prey
-        if let (Some(predator), Some(prey_species)) = (entity1_comps.0, entity2_comps.1) {
-            if predator.hunts.contains(prey_species) {
-                // Get part of prey energy
-                if let Some(prey_energy) = entity2_comps.2.as_ref() {
-                    let energy_gained = prey_energy.value() * ENERGY_TRANSFER_RATE;
-                    if let Some(predator_energy) = entity1_comps.2.as_mut() {
-                        predator_energy.gain(energy_gained);
-                    }
+        if let (Some(predator), Some(prey_species)) = (entity1_comps.0, entity2_comps.1)
+            && predator.hunts.contains(prey_species)
+        {
+            // Get part of prey energy
+            if let Some(prey_energy) = entity2_comps.2.as_ref() {
+                let energy_gained = prey_energy.value() * ENERGY_TRANSFER_RATE;
+                if let Some(predator_energy) = entity1_comps.2.as_mut() {
+                    predator_energy.gain(energy_gained);
                 }
-                // Kill the entity
-                commands.entity(entity2).despawn();
-                continue;
             }
+            // Kill the entity
+            commands.entity(entity2).despawn();
+            continue;
         }
 
         // Check Case 2: Entity2 is the predator, Entity1 is the prey
-        if let (Some(predator), Some(prey_species)) = (entity2_comps.0, entity1_comps.1) {
-            if predator.hunts.contains(prey_species) {
-                // Get part of prey energy
-                if let Some(prey_energy) = entity1_comps.2.as_ref() {
-                    let energy_gained = prey_energy.value() * ENERGY_TRANSFER_RATE;
-                    if let Some(predator_energy) = entity2_comps.2.as_mut() {
-                        predator_energy.gain(energy_gained);
-                    }
+        if let (Some(predator), Some(prey_species)) = (entity2_comps.0, entity1_comps.1)
+            && predator.hunts.contains(prey_species)
+        {
+            // Get part of prey energy
+            if let Some(prey_energy) = entity1_comps.2.as_ref() {
+                let energy_gained = prey_energy.value() * ENERGY_TRANSFER_RATE;
+                if let Some(predator_energy) = entity2_comps.2.as_mut() {
+                    predator_energy.gain(energy_gained);
                 }
-                // Kill entity
-                commands.entity(entity1).despawn();
             }
+            // Kill entity
+            commands.entity(entity1).despawn();
         }
     }
 }
@@ -312,14 +311,14 @@ pub fn reproduction(
             parents.push((
                 name.clone(),
                 color.clone(),
-                species.clone(),
+                *species,
                 energy.clone(),
-                hunter.map(|h| h.clone()),
-                photosynthesis.map(|p| p.clone()),
-                vision.map(|v| v.clone()),
+                hunter.cloned(),
+                photosynthesis.cloned(),
+                vision.cloned(),
                 speed.clone(),
                 size.clone(),
-                active_mover.map(|a| a.clone()),
+                active_mover.cloned(),
                 *transform,
                 *linear_velocity,
             ))
