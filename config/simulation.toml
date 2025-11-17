@@ -6,7 +6,7 @@ biome = "irr_umar"
 
 [simulation]
 lab_name = "RAY_VISION"
-run_id = "91"
+run_id = "97"
 
 [populations]
 ## Irr'Hakur oasis pond
@@ -31,11 +31,11 @@ run_id = "91"
 # vorqualis = 2
 
 ## Irr'Umar swamp
-vyrmosa = 48
-qirval = 24
-lorynth = 12
-dravym = 6
-zyralith = 3
+vyrmosa = 768
+qirval = 48
+lorynth = 24
+dravym = 12
+zyralith = 6
 
 ## Onomora thermal spring basin
 # lyrvane = 128
