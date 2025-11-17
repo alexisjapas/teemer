@@ -136,13 +136,16 @@ pub struct RuntimeConfig {
 
 impl RuntimeConfig {
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
-        // Load embedded configuration files
+        // Load embedded lore configuration
         let lore_content = include_str!("lore.toml");
-        let simulation_content = include_str!("simulation.toml");
+
+        // Load simulation configuration from file at runtime
+        let simulation_content = std::fs::read_to_string("config/simulation.toml")
+            .map_err(|e| format!("Failed to read config/simulation.toml: {}. Make sure you run the program from the project root directory.", e))?;
 
         let lore: LoreConfig = toml::from_str(lore_content)
             .map_err(|e| format!("Failed to parse lore config: {}", e))?;
-        let simulation: SimulationConfig = toml::from_str(simulation_content)
+        let simulation: SimulationConfig = toml::from_str(&simulation_content)
             .map_err(|e| format!("Failed to parse simulation config: {}", e))?;
 
         // Validate biome exists
