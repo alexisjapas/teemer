@@ -34,10 +34,10 @@
           systemd
           wayland
           wayland-protocols
-          xorg.libX11
-          xorg.libXcursor
-          xorg.libXrandr
-          xorg.libXi
+          libx11
+          libxcursor
+          libxrandr
+          libxi
         ];
 
       in
@@ -54,6 +54,10 @@
 
               # Video generation
               ffmpeg-full
+              
+              # Cargo dev tools
+              cargo-outdated
+              cargo-edit
             ]
             ++ libraries;
 
@@ -64,7 +68,9 @@
           WINIT_X11_SCALE_FACTOR = 0.7;
 
           # Shell hook
-          shellHook = '''';
+          shellHook = ''
+            cargo outdated --root-deps-only
+          '';
         };
       }
     );
